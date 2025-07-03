@@ -1,0 +1,39 @@
+// Firebase Storage Security Rules for SkinWise
+// COPY THESE RULES TO: Firebase Console > Storage > Rules > Replace existing rules
+
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Allow authenticated users (Google or Anonymous) to upload/read their own assessment photos
+    match /assessments/{userId}/{allPaths=**} {
+      allow read, write: if request.auth != null 
+                       && request.auth.uid == userId
+                       && resource == null // Allow creation of new files
+                       || (resource != null && request.auth.uid == userId); // Allow access to existing files
+    }
+    
+    // Alternative simpler rule for development/testing:
+    // Uncomment this and comment out the above if you have issues
+    // match /assessments/{userId}/{allPaths=**} {
+    //   allow read, write: if request.auth != null && request.auth.uid == userId;
+    // }
+    
+    // Allow public read access to app assets (icons, etc.)
+    match /public/{allPaths=**} {
+      allow read: if true;
+    }
+    
+    // Deny all other access by default
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
+// IMPORTANT STEPS TO APPLY THESE RULES:
+// 1. Go to Firebase Console (console.firebase.google.com)
+// 2. Select your project: skinwisexv1
+// 3. Go to Storage in the left sidebar
+// 4. Click on "Rules" tab
+// 5. REPLACE ALL EXISTING RULES with the rules above
+// 6. Click "Publish" to save 

@@ -1,0 +1,10 @@
+{
+  "name": "SkinWise - AI Skin Health Analysis",
+  "short_name": "SkinWise",
+  "description": "Ethical AI-assisted skin health analysis with honest guidance",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#475569",
+  "icons": []
+} 
