@@ -62,7 +62,7 @@ export default function LandingPage() {
               SkinWise
             </h1>
             <p className="text-xs text-gray-500 sm:text-sm">
-              Smart skin diagnostics.
+              Smart Skin Diagnostics.
             </p>
           </div>
         </div>
