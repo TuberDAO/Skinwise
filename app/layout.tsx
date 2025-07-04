@@ -43,8 +43,8 @@ export const metadata: Metadata = {
   viewport: {
     width: 'device-width',
     initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
+    maximumScale: 5,
+    userScalable: true,
   },
   appleWebApp: {
     capable: true,
@@ -87,14 +87,15 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className="h-full">
       <head>
         <meta name="theme-color" content="#475569" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
         <link rel="icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/manifest.json" />
       </head>
-      <body className={inter.className}>
+      <body className={`${inter.className} h-full overflow-x-hidden`}>
         <AuthProvider>
           <div className="min-h-screen bg-background font-sans antialiased">
             <main className="relative flex min-h-screen flex-col">

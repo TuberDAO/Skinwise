@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Shield, UserCheck, Heart, Award, Stethoscope, CheckCircle, AlertTriangle, Camera, ArrowRight, ChevronDown, HelpCircle } from "lucide-react"
+import { Shield, UserCheck, Heart, Award, Stethoscope, CheckCircle, AlertTriangle, Camera, ArrowRight, ChevronDown, HelpCircle, Menu, X } from "lucide-react"
 import Link from "next/link"
 import { useState, useEffect } from 'react'
 import { detectUserCurrency, formatPrice, formatDermatologistPrice, getUserCurrencyFromLocale, convertPrice, SUPPORTED_CURRENCIES, type SupportedCurrency } from '@/lib/currency'
@@ -11,6 +11,7 @@ export default function LandingPage() {
   const [userCurrency, setUserCurrency] = useState<SupportedCurrency>('USD')
   const [currencyLoading, setCurrencyLoading] = useState(true)
   const [openFAQ, setOpenFAQ] = useState<number | null>(null)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   useEffect(() => {
     // Detect user's currency for pricing display
@@ -37,7 +38,7 @@ export default function LandingPage() {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Header */}
-      <header className="px-4 lg:px-6 h-16 flex items-center border-b bg-white shadow-sm">
+      <header className="px-4 lg:px-6 h-16 flex items-center border-b bg-white shadow-sm relative">
         <Link className="flex items-center justify-center" href="/">
           <img 
             src="/skinwise-logo.png.png" 
@@ -47,28 +48,33 @@ export default function LandingPage() {
         </Link>
         
         {/* START: Brand Name and Tagline in Header - EASY ROLLBACK BLOCK */}
-        {/* PREVIOUS VERSION - UNCOMMENT TO ROLLBACK:
-        <div className="flex-1 flex items-center justify-center">
-          <h1 className="text-lg md:text-xl lg:text-2xl font-bold text-slate-900 leading-tight">
-            SkinWise
-          </h1>
-        </div>
-        */}
-        
-        {/* NEW VERSION - COMMENT OUT TO ROLLBACK: */}
-        <div className="flex-1 flex items-center justify-center space-x-2 ml-4 sm:ml-8 md:ml-12 lg:ml-16 xl:ml-20">
+        {/* Desktop: Center-aligned title */}
+        <div className="hidden md:flex flex-1 items-center justify-center">
           <div className="text-center">
-            <h1 className="text-xl font-bold tracking-tight text-gray-900 sm:text-2xl md:text-3xl">
+            <h1 className="text-xl font-bold tracking-tight text-gray-900 lg:text-2xl xl:text-3xl">
               SkinWise
             </h1>
-            <p className="text-xs text-gray-500 sm:text-sm">
+            <p className="text-xs text-gray-500 lg:text-sm">
+              Smart Skin Diagnostics.
+            </p>
+          </div>
+        </div>
+        
+        {/* Mobile: Compact title next to logo */}
+        <div className="md:hidden flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-lg font-bold tracking-tight text-gray-900">
+              SkinWise
+            </h1>
+            <p className="text-xs text-gray-500">
               Smart Skin Diagnostics.
             </p>
           </div>
         </div>
         {/* END: Brand Name and Tagline in Header - EASY ROLLBACK BLOCK */}
         
-        <nav className="flex gap-4 sm:gap-6">
+        {/* Desktop Navigation */}
+        <nav className="hidden md:flex gap-4 lg:gap-6">
           <Link className="text-sm font-medium text-slate-600 hover:text-teal-700 underline-offset-4 hover:underline" href="#how-it-works">
             How It Works
           </Link>
@@ -79,11 +85,53 @@ export default function LandingPage() {
             FAQ
           </Link>
         </nav>
+        
+        {/* Mobile Menu Button */}
+        <button 
+          className="md:hidden p-2"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label="Toggle mobile menu"
+        >
+          {mobileMenuOpen ? (
+            <X className="h-6 w-6 text-slate-600" />
+          ) : (
+            <Menu className="h-6 w-6 text-slate-600" />
+          )}
+        </button>
+        
+        {/* Mobile Navigation Menu */}
+        {mobileMenuOpen && (
+          <div className="absolute top-full left-0 right-0 bg-white border-b shadow-lg md:hidden z-50">
+            <nav className="flex flex-col py-4 px-4 space-y-4">
+              <Link 
+                className="text-sm font-medium text-slate-600 hover:text-teal-700 py-2" 
+                href="#how-it-works"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                How It Works
+              </Link>
+              <Link 
+                className="text-sm font-medium text-slate-600 hover:text-teal-700 py-2" 
+                href="#when-to-use"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                When to Use
+              </Link>
+              <Link 
+                className="text-sm font-medium text-slate-600 hover:text-teal-700 py-2" 
+                href="#faq"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                FAQ
+              </Link>
+            </nav>
+          </div>
+        )}
       </header>
 
       {/* Hero Section */}
       {/* START: Ultra-Compact Button-Visible Layout - EASY ROLLBACK BLOCK */}
-      <section className="w-full pt-1 pb-6 md:pt-2 md:pb-8 lg:pt-3 lg:pb-10 bg-gradient-to-br from-slate-50 via-white to-teal-50">
+      <section className="w-full pt-1 pb-6 md:pt-2 md:pb-8 lg:pt-3 lg:pb-10 bg-gradient-to-br from-slate-50 via-white to-teal-50 overflow-x-hidden">
         <div className="container px-4 md:px-6 mx-auto">
           <div className="flex flex-col items-center space-y-3 text-center max-w-5xl mx-auto">
             {/* START: How to Use SkinWise Instructional Graphic - Higher Position */}
