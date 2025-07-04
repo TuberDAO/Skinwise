@@ -48,8 +48,8 @@ export default function LandingPage() {
         </Link>
         
         {/* START: Brand Name and Tagline in Header - EASY ROLLBACK BLOCK */}
-        {/* Desktop: Center-aligned title */}
-        <div className="hidden md:flex flex-1 items-center justify-center">
+        {/* Desktop: Absolutely centered title */}
+        <div className="hidden md:flex absolute left-1/2 transform -translate-x-1/2">
           <div className="text-center">
             <h1 className="text-xl font-bold tracking-tight text-gray-900 lg:text-2xl xl:text-3xl">
               SkinWise
@@ -74,7 +74,7 @@ export default function LandingPage() {
         {/* END: Brand Name and Tagline in Header - EASY ROLLBACK BLOCK */}
         
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex gap-4 lg:gap-6">
+        <nav className="hidden md:flex gap-4 lg:gap-6 ml-auto">
           <Link className="text-sm font-medium text-slate-600 hover:text-teal-700 underline-offset-4 hover:underline" href="#how-it-works">
             How It Works
           </Link>
@@ -88,7 +88,7 @@ export default function LandingPage() {
         
         {/* Mobile Menu Button */}
         <button 
-          className="md:hidden p-2"
+          className="md:hidden p-2 ml-auto"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           aria-label="Toggle mobile menu"
         >
@@ -101,7 +101,7 @@ export default function LandingPage() {
         
         {/* Mobile Navigation Menu */}
         {mobileMenuOpen && (
-          <div className="absolute top-full left-0 right-0 bg-white border-b shadow-lg md:hidden z-50">
+          <div className="absolute top-full left-0 right-0 bg-white border-b shadow-lg md:hidden z-40">
             <nav className="flex flex-col py-4 px-4 space-y-4">
               <Link 
                 className="text-sm font-medium text-slate-600 hover:text-teal-700 py-2" 
