@@ -3,7 +3,6 @@ import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
 import { 
   getAuth, 
   GoogleAuthProvider, 
-  signInAnonymously, 
   signInWithPopup,
   type Auth 
 } from 'firebase/auth';
@@ -110,18 +109,8 @@ export const signInWithGoogle = async () => {
   }
 };
 
-export const signInAsAnonymous = async () => {
-  if (!auth) {
-    throw new Error('Firebase auth not initialized');
-  }
-  try {
-    const result = await signInAnonymously(auth);
-    return result;
-  } catch (error) {
-    console.error('Error signing in anonymously:', error);
-    throw error;
-  }
-};
+// Anonymous login functionality removed to ensure only Google login is used
+// This ensures users always have an email address for communication
 
 // Export the app instance
 export { app };

@@ -1,0 +1,207 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { useAuth } from '@/components/providers/auth-provider'
+import { CheckCircle, Home, Calendar, Download, Shield } from "lucide-react"
+import Link from "next/link"
+
+export default function SuccessPage() {
+  const router = useRouter()
+  const [sessionId, setSessionId] = useState<string | null>(null)
+  const [authState, setAuthState] = useState<{user: any, loading: boolean}>({ user: null, loading: true })
+
+  // Safe way to get search params
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search)
+      const sessionIdFromUrl = urlParams.get('session_id')
+      console.log('Success page loaded with session ID:', sessionIdFromUrl)
+      setSessionId(sessionIdFromUrl)
+    }
+  }, [])
+
+  // Safe auth loading - but don't redirect if we have a session_id (successful payment)
+  useEffect(() => {
+    try {
+      const { useAuth } = require('@/components/providers/auth-provider')
+      const { user, loading } = useAuth()
+      setAuthState({ user, loading })
+      
+      // If we have a session_id, we're coming from a successful payment
+      // Don't redirect even if auth is not immediately available
+      if (sessionId) {
+        console.log('✅ SUCCESS PAGE: Payment session detected, staying on success page')
+      }
+    } catch (error) {
+      console.warn('Auth provider error:', error)
+      // Only redirect to login if we don't have a session_id (meaning no successful payment)
+      if (typeof window !== 'undefined' && !sessionId) {
+        console.log('❌ No session_id found, redirecting to login')
+        window.location.href = '/login'
+      } else {
+        console.log('✅ Session_id found, not redirecting despite auth error')
+      }
+    }
+  }, [sessionId])
+
+  useEffect(() => {
+    // Clear pending assessment from session storage to prevent redirect loops
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('pendingAssessment')
+      console.log('✅ SUCCESS PAGE: Cleared pending assessment from session storage')
+      console.log('✅ SUCCESS PAGE: Session ID detected:', sessionId)
+      
+      // Also remove any other upload-related session data
+      sessionStorage.removeItem('uploadState')
+      console.log('✅ SUCCESS PAGE: Cleared upload state from session storage')
+    }
+  }, [sessionId])
+
+  // Show loading if auth is still loading AND we don't have a session_id
+  // If we have a session_id, show the success page even if auth is loading
+  if (authState.loading && !sessionId) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-brand-blue border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p>Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  const handleScheduleAppointment = () => {
+    // Placeholder for appointment scheduling - will be implemented later
+    console.log('Schedule appointment clicked')
+    alert('Appointment scheduling feature coming soon! We will provide instructions for this feature shortly. You can wait for your report or contact us directly.')
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 to-teal-50">
+      {/* Header */}
+      <header className="px-4 lg:px-6 h-14 flex items-center border-b bg-white/80 backdrop-blur-sm">
+        <Link className="flex items-center justify-center" href="/">
+          <img 
+            src="/skinwise-logo.png.png" 
+            alt="SkinWise App" 
+            className="h-10 w-auto"
+          />
+        </Link>
+        <div className="ml-auto text-sm text-slate-600">
+          {authState.user?.email || 'User'}
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <div className="flex-1 flex items-center justify-center p-4">
+        <div className="max-w-4xl w-full space-y-8">
+          
+          {/* Success Icon and Headline */}
+          <div className="text-center space-y-6">
+            <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto shadow-lg">
+              <CheckCircle className="w-12 h-12 text-green-600" />
+            </div>
+            
+            {/* Large Headline */}
+            <h1 className="text-4xl md:text-5xl font-bold text-slate-900 leading-tight">
+              Thank you — we've received your assessment!
+            </h1>
+            
+            {/* Medium Subheadline */}
+            <p className="text-xl md:text-2xl text-slate-700 leading-relaxed max-w-3xl mx-auto">
+              Your AI-assisted skin report and dermatologist referral will arrive within 24 hours or less, please look out for the email, (don't forget to check your spam folder!)
+            </p>
+          </div>
+
+          {/* Main Content Card */}
+          <Card className="shadow-xl border-0 bg-white/90 backdrop-blur-sm">
+            <CardContent className="p-8 md:p-12 space-y-8">
+              
+              {/* Body Text - Friendly tone */}
+              <div className="space-y-6 text-lg text-slate-700 leading-relaxed">
+                <p>
+                  <strong>We've successfully received your submission</strong>, including your photos and symptom details.
+                </p>
+                
+                <p>
+                  We are now analyzing your case. Once complete, you'll receive:
+                </p>
+                
+                {/* What you'll receive list */}
+                <div className="bg-blue-50 border-l-4 border-blue-400 p-6 rounded-r-lg">
+                  <ul className="space-y-3 text-blue-900">
+                    <li className="flex items-start space-x-3">
+                      <Download className="w-5 h-5 text-blue-600 mt-1 flex-shrink-0" />
+                      <span><strong>A downloadable PDF</strong> with clear, personalized insights</span>
+                    </li>
+                    <li className="flex items-start space-x-3">
+                      <Shield className="w-5 h-5 text-blue-600 mt-1 flex-shrink-0" />
+                      <span><strong>A referral letter</strong> tailored for a board-certified dermatologist</span>
+                    </li>
+                    <li className="flex items-start space-x-3">
+                      <Calendar className="w-5 h-5 text-blue-600 mt-1 flex-shrink-0" />
+                      <span><strong>Optional instructions</strong> on how to book a virtual consultation with one of our trusted dermatologists</span>
+                    </li>
+                  </ul>
+                </div>
+                
+                <p className="text-center bg-orange-50 border border-orange-200 rounded-lg p-4 text-orange-800">
+                  <strong>For urgent or severe issues, we prioritize review even faster.</strong>
+                </p>
+              </div>
+
+              {/* What would you like to do next? */}
+              <div className="space-y-6">
+                <h2 className="text-2xl font-semibold text-slate-900 text-center">
+                  What would you like to do next?
+                </h2>
+                
+                {/* Action Buttons */}
+                <div className="flex flex-col sm:flex-row gap-4 max-w-2xl mx-auto">
+                  <Link href="/" className="flex-1">
+                    <Button 
+                      variant="outline" 
+                      className="w-full h-14 text-lg font-medium border-2 border-slate-300 hover:bg-slate-50 hover:border-slate-400 transition-all"
+                    >
+                      <Home className="w-5 h-5 mr-3" />
+                      ✅ Return to Home
+                    </Button>
+                  </Link>
+                  
+                  <Button 
+                    onClick={handleScheduleAppointment}
+                    className="flex-1 h-14 text-lg font-medium bg-brand-blue hover:bg-brand-blue/90 text-white transition-all"
+                  >
+                    <Calendar className="w-5 h-5 mr-3" />
+                    🩺 Schedule an Online Dermatologist Appointment
+                  </Button>
+                </div>
+                
+                {/* Optional note under Schedule button */}
+                <p className="text-center text-sm text-slate-600 max-w-2xl mx-auto">
+                  <em>Optional – we can also help after your report is delivered or you can book an appointment now.</em>
+                </p>
+              </div>
+
+            </CardContent>
+          </Card>
+
+          {/* Friendly Footer Note */}
+          <div className="text-center">
+            <Card className="bg-slate-100/80 border-0">
+              <CardContent className="p-6">
+                <p className="text-sm text-slate-600 leading-relaxed">
+                  <strong>Your privacy is important to us.</strong> All data is handled securely, and you can reply to your report email if you need additional assistance.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  )
+} 

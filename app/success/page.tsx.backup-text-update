@@ -1,0 +1,139 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { CheckCircle, Home, Calendar, Download, Shield } from "lucide-react"
+import Link from "next/link"
+
+export default function SuccessPage() {
+  const [sessionId, setSessionId] = useState<string | null>(null)
+  const [userEmail, setUserEmail] = useState<string>('User')
+  const [isLoaded, setIsLoaded] = useState(false)
+
+  // Get session ID and user info - this runs once and never changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search)
+      const sessionIdFromUrl = urlParams.get('session_id')
+      console.log('🎯 SUCCESS PAGE: Session ID detected:', sessionIdFromUrl)
+      setSessionId(sessionIdFromUrl)
+      
+      // Clear session storage to prevent any redirect loops
+      sessionStorage.removeItem('pendingAssessment')
+      sessionStorage.removeItem('uploadState')
+      console.log('🧹 SUCCESS PAGE: Cleared all session storage')
+      
+      // Try to get user email safely without dependencies
+      try {
+        const { useAuth } = require('@/components/providers/auth-provider')
+        const { user } = useAuth()
+        if (user?.email) {
+          setUserEmail(user.email)
+          console.log('👤 SUCCESS PAGE: User email loaded:', user.email)
+        }
+      } catch (error) {
+        console.log('⚠️ SUCCESS PAGE: Could not load user email, using fallback')
+        setUserEmail('User')
+      }
+      
+      setIsLoaded(true)
+      console.log('✅ SUCCESS PAGE: Page fully loaded and stable')
+    }
+  }, [])
+
+  // CRITICAL: Prevent any redirects if we have a session_id
+  useEffect(() => {
+    if (sessionId) {
+      console.log('🔒 SUCCESS PAGE: Session ID present, preventing all redirects')
+      
+      // Override any potential redirect attempts by other code
+      const originalPush = window.history.pushState
+      const originalReplace = window.history.replaceState
+      
+      window.history.pushState = function(state, title, url) {
+        if (url) {
+          const urlStr = typeof url === 'string' ? url : url.toString()
+          if (urlStr.includes('/upload') || urlStr.includes('/login') || urlStr.includes('/payment')) {
+            console.log('🚫 SUCCESS PAGE: Blocked redirect to:', urlStr)
+            return
+          }
+        }
+        return originalPush.call(this, state, title, url)
+      }
+      
+      window.history.replaceState = function(state, title, url) {
+        if (url) {
+          const urlStr = typeof url === 'string' ? url : url.toString()
+          if (urlStr.includes('/upload') || urlStr.includes('/login') || urlStr.includes('/payment')) {
+            console.log('🚫 SUCCESS PAGE: Blocked redirect to:', urlStr)
+            return
+          }
+        }
+        return originalReplace.call(this, state, title, url)
+      }
+      
+      // Clean up on unmount
+      return () => {
+        window.history.pushState = originalPush
+        window.history.replaceState = originalReplace
+      }
+    }
+  }, [sessionId])
+
+  // Show loading only if not loaded yet
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-brand-blue border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p>Loading success page...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // If no session ID, show a different message (shouldn't happen in normal flow)
+  if (!sessionId) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <h1 className="text-2xl font-bold text-slate-900">
+            Access this page after completing payment
+          </h1>
+          <Link href="/upload">
+            <Button>Return to Upload</Button>
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 to-teal-50">
+      <div className="text-center p-8">
+        <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
+        <h1 className="text-3xl font-bold text-slate-900 mb-4">
+          Thank you — we've received your assessment!
+        </h1>
+        <p className="text-lg text-slate-700 mb-8">
+          Your AI-assisted skin report and dermatologist referral will arrive within 24 hours or less, please look out for the email, (don't forget to check your spam folder!)
+        </p>
+        
+        <div className="space-y-4">
+          <Link href="/">
+            <Button className="w-full max-w-md">
+              <Home className="w-5 h-5 mr-2" />
+              ✅ Return to Home
+            </Button>
+          </Link>
+          
+          <Button className="w-full max-w-md" onClick={() => alert('Appointment scheduling feature coming soon!')}>
+            <Calendar className="w-5 h-5 mr-2" />
+            🩺 Schedule an Online Dermatologist Appointment
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}

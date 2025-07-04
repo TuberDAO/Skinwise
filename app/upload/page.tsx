@@ -292,11 +292,7 @@ export default function UploadPage() {
       return
     }
 
-    if (user.isAnonymous) {
-      alert('Anonymous accounts cannot submit assessments. Please log in with a valid email account.')
-      router.push('/login')
-      return
-    }
+    // All users must have Google login with email - no anonymous users allowed
 
     if (!firestore) {
       alert('Database connection error. Please try again.')
@@ -522,14 +518,14 @@ export default function UploadPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description" className="font-semibold">Description</Label>
                 <div className="flex space-x-2">
                   <textarea
                     id="description"
                     value={textDescription}
                     onChange={(e) => setTextDescription(e.target.value)}
                     placeholder="Describe your skin concern, symptoms, pain level, or any other relevant details..."
-                    className="flex-1 min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="flex-1 min-h-[100px] w-full rounded-md border-2 border-slate-500 bg-white px-3 py-2 text-sm font-medium placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue focus-visible:border-brand-blue focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 shadow-sm"
                   />
                   <Button
                     onClick={startRecording}
@@ -548,32 +544,35 @@ export default function UploadPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="duration">How long have you noticed this?</Label>
+                  <Label htmlFor="duration" className="font-semibold">How long have you noticed this?</Label>
                   <Input
                     id="duration"
                     value={symptomDuration}
                     onChange={(e) => setSymptomDuration(e.target.value)}
                     placeholder="e.g., 2 weeks, 3 months"
+                    className="border-2 border-slate-500 bg-white font-medium placeholder:text-slate-500 focus-visible:ring-brand-blue focus-visible:border-brand-blue shadow-sm"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="products">Current products you're using</Label>
+                  <Label htmlFor="products" className="font-semibold">Current products you're using</Label>
                   <Input
                     id="products"
                     value={productUsage}
                     onChange={(e) => setProductUsage(e.target.value)}
                     placeholder="e.g., moisturizer, cleanser, medication"
+                    className="border-2 border-slate-500 bg-white font-medium placeholder:text-slate-500 focus-visible:ring-brand-blue focus-visible:border-brand-blue shadow-sm"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="changes">Recent changes in routine, environment, or lifestyle</Label>
+                <Label htmlFor="changes" className="font-semibold">Recent changes in routine, environment, or lifestyle</Label>
                 <Input
                   id="changes"
                   value={recentChanges}
                   onChange={(e) => setRecentChanges(e.target.value)}
                   placeholder="e.g., new products, stress, diet changes, travel"
+                  className="border-2 border-slate-500 bg-white font-medium placeholder:text-slate-500 focus-visible:ring-brand-blue focus-visible:border-brand-blue shadow-sm"
                 />
               </div>
             </CardContent>

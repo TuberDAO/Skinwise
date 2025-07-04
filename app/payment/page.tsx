@@ -8,26 +8,68 @@ import { useAuth } from '@/components/providers/auth-provider'
 import { Heart, CreditCard, Shield, Clock, Users } from "lucide-react"
 import Link from "next/link"
 import { stripePromise } from '@/lib/stripe'
+import { detectUserCurrency, formatPrice, getUserCurrencyFromLocale, type SupportedCurrency } from '@/lib/currency'
 
 export default function PaymentPage() {
   const { user } = useAuth()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [assessmentData, setAssessmentData] = useState<any>(null)
+  const [isClientSide, setIsClientSide] = useState(false)
+  const [userCurrency, setUserCurrency] = useState<SupportedCurrency>('USD')
+  const [currencyLoading, setCurrencyLoading] = useState(true)
 
   useEffect(() => {
+    // Mark that we're on the client side
+    setIsClientSide(true)
+    
+    // Detect user's currency for pricing display
+    detectUserCurrency().then(currency => {
+      setUserCurrency(currency)
+      setCurrencyLoading(false)
+    }).catch(() => {
+      // Fallback to locale-based detection
+      const fallbackCurrency = getUserCurrencyFromLocale()
+      setUserCurrency(fallbackCurrency)
+      setCurrencyLoading(false)
+    })
+    
     // Only access sessionStorage on client side
     if (typeof window !== 'undefined') {
+      // Check if we're being accessed with a session_id (indicating successful payment)
+      const urlParams = new URLSearchParams(window.location.search)
+      const sessionId = urlParams.get('session_id')
+      
+      if (sessionId) {
+        // If there's a session_id, we should redirect to success page instead
+        console.log('Payment page accessed with session_id, redirecting to success page')
+        router.push(`/success?session_id=${sessionId}`)
+        return
+      }
+      
       // Get assessment data from session storage
       const data = sessionStorage.getItem('pendingAssessment')
       if (data) {
         setAssessmentData(JSON.parse(data))
       } else {
-        // Redirect back to upload if no data
+        // Only redirect back to upload if no data AND no session_id
+        console.log('No pending assessment data found, redirecting to upload')
         router.push('/upload')
       }
     }
   }, [router])
+
+  // Don't render anything during SSR
+  if (!isClientSide) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-brand-blue border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p>Loading...</p>
+        </div>
+      </div>
+    )
+  }
 
   // Redirect if not logged in
   if (!user) {
@@ -40,9 +82,9 @@ export default function PaymentPage() {
 
     try {
       setLoading(true)
-      console.log('Starting payment process...', { userId: user.uid, assessmentData })
+      console.log('Starting payment process...', { userId: user.uid, assessmentData, currency: userCurrency })
       
-      // Create checkout session
+      // Create checkout session with detected currency
       const response = await fetch('/api/create-checkout-session', {
         method: 'POST',
         headers: {
@@ -52,6 +94,7 @@ export default function PaymentPage() {
           assessmentData,
           userId: user.uid,
           userEmail: user.email || 'anonymous@skinwise.com',
+          currency: userCurrency,
         }),
       })
 
@@ -124,7 +167,7 @@ export default function PaymentPage() {
           />
         </Link>
         <div className="ml-auto text-sm text-slate-600">
-          {user.isAnonymous ? 'Anonymous User' : user.email}
+          {user.email}
         </div>
       </header>
 
@@ -152,23 +195,23 @@ export default function PaymentPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <p className="text-sm font-medium">Photos uploaded</p>
-                  <p className="text-2xl font-bold text-brand-blue">{assessmentData.photos.length}</p>
+                  <p className="text-2xl font-bold text-brand-blue">{assessmentData.files?.length || 0}</p>
                 </div>
                 <div className="space-y-2">
                   <p className="text-sm font-medium">Description provided</p>
                   <p className="text-2xl font-bold text-brand-blue">
-                    {assessmentData.textDescription ? '✓' : '✗'}
+                    {assessmentData.description ? '✓' : '✗'}
                   </p>
                 </div>
               </div>
               
-              {assessmentData.textDescription && (
+              {assessmentData.description && (
                 <div className="border-t pt-4">
                   <p className="text-sm font-medium mb-2">Your description:</p>
                   <p className="text-sm text-slate-600 bg-slate-50 p-3 rounded">
-                    {assessmentData.textDescription.length > 100 
-                      ? assessmentData.textDescription.substring(0, 100) + '...'
-                      : assessmentData.textDescription
+                    {assessmentData.description.length > 100 
+                      ? assessmentData.description.substring(0, 100) + '...'
+                      : assessmentData.description
                     }
                   </p>
                 </div>
@@ -190,11 +233,8 @@ export default function PaymentPage() {
             <CardContent className="space-y-6">
               <div className="text-center">
                 <div className="text-3xl font-bold text-brand-blue">
-                  $19.95 USD
+                  {currencyLoading ? '$19.95 USD' : formatPrice(userCurrency)}
                 </div>
-                <p className="text-sm text-slate-600">
-                  International cards accepted • Your bank handles currency conversion
-                </p>
               </div>
 
               <div className="space-y-4">

@@ -12,7 +12,7 @@ export default function TestFirebasePage() {
       // Test direct Firebase Storage connection
       const { initializeApp } = await import('firebase/app')
       const { getStorage, ref, uploadBytes } = await import('firebase/storage')
-      const { getAuth, signInAnonymously } = await import('firebase/auth')
+      const { getAuth, signInWithPopup, GoogleAuthProvider } = await import('firebase/auth')
       
       // Create a minimal test config
       const testConfig = {
@@ -35,9 +35,10 @@ export default function TestFirebasePage() {
       const testAuth = getAuth(testApp)
       const testStorage = getStorage(testApp)
       
-      // Sign in anonymously to get a user ID
-      setTestResult('Authenticating...')
-      const userCred = await signInAnonymously(testAuth)
+      // Sign in with Google to get a user ID
+      setTestResult('Authenticating with Google...')
+      const provider = new GoogleAuthProvider()
+      const userCred = await signInWithPopup(testAuth, provider)
       const userId = userCred.user.uid
       
       // Create a tiny test file using the correct path pattern: assessments/{userId}/
