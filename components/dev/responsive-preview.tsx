@@ -80,12 +80,23 @@ export default function ResponsivePreview() {
     // Apply viewport dimensions to the main container
     const mainContainer = document.querySelector('main')
     if (mainContainer) {
+      // Always constrain width
       mainContainer.style.width = `${preset.width}px`
-      mainContainer.style.height = `${preset.height}px`
+      
+      // For mobile devices (width < 768), allow natural height with scrolling
+      // For larger devices, constrain height for desktop simulation
+      if (preset.width < 768) {
+        mainContainer.style.height = 'auto'
+        mainContainer.style.minHeight = `${preset.height}px`
+        mainContainer.style.overflow = 'visible'
+      } else {
+        mainContainer.style.height = `${preset.height}px`
+        mainContainer.style.overflow = 'auto'
+      }
+      
       mainContainer.style.margin = '20px auto'
       mainContainer.style.border = '1px solid #e2e8f0'
       mainContainer.style.borderRadius = '8px'
-      mainContainer.style.overflow = 'hidden'
       mainContainer.style.boxShadow = '0 10px 25px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)'
     }
     
