@@ -325,6 +325,10 @@ export default function LandingPage() {
                     <div className="w-2 h-2 bg-teal-600 rounded-full mt-2 flex-shrink-0"></div>
                     <span className="text-slate-700">Areas that won't heal or keep returning</span>
                   </div>
+                  <div className="flex items-start space-x-2">
+                    <div className="w-2 h-2 bg-teal-600 rounded-full mt-2 flex-shrink-0"></div>
+                    <span className="text-slate-700">Or Any other Skin concern you have</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -364,7 +368,7 @@ export default function LandingPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-slate-600">
-                  Advanced AI identifies patterns and potential concerns to assist healthcare professionals.
+                  Advanced AI analyzes your skin concern, and we'll send you a clear, preliminary explanation of what it may be
                 </p>
               </CardContent>
             </Card>
@@ -455,7 +459,7 @@ export default function LandingPage() {
                 },
                 {
                   q: `What do I get for ${getBasePrice()}?`,
-                  a: "You'll receive: A personalized PDF report written in everyday language, An AI-assisted analysis of your skin issue, A print-ready letter to bring to your dermatologist or GP, and Results delivered within 24 hours."
+                  a: "You'll receive:\nA personalised PDF report that includes an AI-assisted analysis based on your submitted photos and description, written in clear, everyday language to help you understand your skin concern.\nA medically formatted letter for your Doctor or dermatologist, written in professional clinical terminology\nResults delivered within 24 hours directly to your email"
                 },
                 {
                   q: "Can I get a dermatologist to review my case?",
