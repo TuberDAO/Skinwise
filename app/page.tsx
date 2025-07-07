@@ -38,12 +38,12 @@ export default function LandingPage() {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Header */}
-      <header className="px-4 lg:px-6 h-16 flex items-center border-b bg-white shadow-sm relative">
+      <header className="px-3 sm:px-4 lg:px-6 h-16 flex items-center border-b bg-white shadow-sm relative">
         <Link className="flex items-center justify-center" href="/">
           <img 
             src="/skinwise-logo.png.png" 
             alt="SkinWise App" 
-            className="h-20 w-auto"
+            className="h-12 sm:h-16 md:h-20 w-auto"
           />
         </Link>
         
@@ -61,12 +61,12 @@ export default function LandingPage() {
         </div>
         
         {/* Mobile: Compact title next to logo */}
-        <div className="md:hidden flex-1 flex items-center justify-center">
+        <div className="md:hidden flex-1 flex items-center justify-center px-2">
           <div className="text-center">
-            <h1 className="text-lg font-bold tracking-tight text-gray-900">
+            <h1 className="text-sm sm:text-base font-bold tracking-tight text-gray-900">
               SkinWise
             </h1>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-500 hidden xs:block">
               Smart Skin Diagnostics.
             </p>
           </div>
@@ -131,34 +131,34 @@ export default function LandingPage() {
 
       {/* Hero Section */}
       {/* START: Ultra-Compact Button-Visible Layout - EASY ROLLBACK BLOCK */}
-      <section className="w-full pt-1 pb-6 md:pt-2 md:pb-8 lg:pt-3 lg:pb-10 bg-gradient-to-br from-slate-50 via-white to-teal-50 overflow-x-hidden">
-        <div className="container px-4 md:px-6 mx-auto">
-          <div className="flex flex-col items-center space-y-3 text-center max-w-5xl mx-auto">
+      <section className="w-full pt-2 pb-6 md:pt-2 md:pb-8 lg:pt-3 lg:pb-10 bg-gradient-to-br from-slate-50 via-white to-teal-50 overflow-x-hidden">
+        <div className="container px-3 sm:px-4 md:px-6 mx-auto">
+          <div className="flex flex-col items-center space-y-2 sm:space-y-3 text-center max-w-5xl mx-auto">
             {/* START: How to Use SkinWise Instructional Graphic - Higher Position */}
-            <div className="w-full max-w-6xl mb-0">
+            <div className="w-full max-w-sm sm:max-w-md md:max-w-4xl lg:max-w-6xl mb-0">
               <div className="relative">
                 <img 
                   src="/how-to-use-skinwise.png" 
                   alt="How to use SkinWise - Take a photo, Send securely, AI-assisted results in 24 hours" 
-                  className="w-full h-auto object-contain max-h-36 sm:max-h-44 md:max-h-52 lg:max-h-60 xl:max-h-68 mx-auto"
+                  className="w-full h-auto object-contain max-h-24 xs:max-h-28 sm:max-h-36 md:max-h-52 lg:max-h-60 xl:max-h-68 mx-auto"
                 />
               </div>
             </div>
             {/* END: How to Use SkinWise Instructional Graphic */}
 
             {/* Main Headline - Ultra Compact */}
-            <div className="space-y-1">
-              <h1 className="text-lg font-bold tracking-tight sm:text-xl md:text-2xl lg:text-3xl text-slate-900 leading-tight">
+            <div className="space-y-1 px-2">
+              <h1 className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-bold tracking-tight text-slate-900 leading-tight">
                 Concerned About a 
                 <span className="text-teal-700"> Skin Change</span>?
               </h1>
-              <h2 className="text-sm sm:text-base md:text-lg font-medium text-slate-700 leading-snug">
+              <h2 className="text-xs sm:text-sm md:text-base lg:text-lg font-medium text-slate-700 leading-snug px-1">
                 Get Professional Assessment for Rashes, Moles, Lesions & Discoloration
               </h2>
             </div>
 
             {/* Subheadline - Ultra Compact */}
-            <p className="mx-auto max-w-[500px] text-xs md:text-sm text-slate-600 leading-snug">
+            <p className="mx-auto max-w-[280px] sm:max-w-[400px] md:max-w-[500px] text-xs sm:text-xs md:text-sm text-slate-600 leading-snug px-2">
               AI-assisted analysis reviewed by healthcare professionals. We focus on identifying 
               potential health concerns and provide ethical guidance—not cosmetic advice or product sales.
             </p>
@@ -192,17 +192,17 @@ export default function LandingPage() {
             </div>
 
             {/* Trust Indicators - Ultra Compact */}
-            <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4 text-xs text-gray-800 pt-1">
-              <div className="flex items-center space-x-1">
-                <Shield className="h-3 w-3 text-teal-600" />
+            <div className="grid grid-cols-1 sm:flex sm:flex-wrap items-center justify-center gap-1 sm:gap-2 md:gap-4 text-xs text-gray-800 pt-1 max-w-xs sm:max-w-none mx-auto">
+              <div className="flex items-center justify-center space-x-1">
+                <Shield className="h-3 w-3 text-teal-600 flex-shrink-0" />
                 <span className="font-medium">Private & Secure</span>
               </div>
-              <div className="flex items-center space-x-1">
-                <CheckCircle className="h-3 w-3 text-teal-600" />
+              <div className="flex items-center justify-center space-x-1">
+                <CheckCircle className="h-3 w-3 text-teal-600 flex-shrink-0" />
                 <span className="font-medium">No Product Partnerships</span>
               </div>
-              <div className="flex items-center space-x-1">
-                <UserCheck className="h-3 w-3 text-teal-600" />
+              <div className="flex items-center justify-center space-x-1">
+                <UserCheck className="h-3 w-3 text-teal-600 flex-shrink-0" />
                 <span className="font-medium">Reviewed by Professionals</span>
               </div>
             </div>
