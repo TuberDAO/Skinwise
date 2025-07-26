@@ -11,13 +11,14 @@ import { stripePromise } from '@/lib/stripe'
 import { detectUserCurrency, formatPrice, getUserCurrencyFromLocale, type SupportedCurrency } from '@/lib/currency'
 
 export default function PaymentPage() {
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [assessmentData, setAssessmentData] = useState<any>(null)
   const [isClientSide, setIsClientSide] = useState(false)
   const [userCurrency, setUserCurrency] = useState<SupportedCurrency>('USD')
   const [currencyLoading, setCurrencyLoading] = useState(true)
+  const [shouldRedirect, setShouldRedirect] = useState<string | null>(null)
 
   useEffect(() => {
     // Mark that we're on the client side
@@ -33,34 +34,51 @@ export default function PaymentPage() {
       setUserCurrency(fallbackCurrency)
       setCurrencyLoading(false)
     })
-    
-    // Only access sessionStorage on client side
-    if (typeof window !== 'undefined') {
-      // Check if we're being accessed with a session_id (indicating successful payment)
-      const urlParams = new URLSearchParams(window.location.search)
-      const sessionId = urlParams.get('session_id')
-      
-      if (sessionId) {
-        // If there's a session_id, we should redirect to success page instead
-        console.log('Payment page accessed with session_id, redirecting to success page')
-        router.push(`/success?session_id=${sessionId}`)
-        return
-      }
-      
-      // Get assessment data from session storage
-      const data = sessionStorage.getItem('pendingAssessment')
-      if (data) {
-        setAssessmentData(JSON.parse(data))
-      } else {
-        // Only redirect back to upload if no data AND no session_id
-        console.log('No pending assessment data found, redirecting to upload')
-        router.push('/upload')
-      }
-    }
-  }, [router])
+  }, [])
 
-  // Don't render anything during SSR
-  if (!isClientSide) {
+  useEffect(() => {
+    // Only run after component is mounted and user auth is resolved
+    if (!isClientSide || authLoading || !user) return
+
+    console.log('PaymentPage: Checking for assessment data and session_id...')
+    
+    // Check if we're being accessed with a session_id (indicating successful payment)
+    const urlParams = new URLSearchParams(window.location.search)
+    const sessionId = urlParams.get('session_id')
+    
+    if (sessionId) {
+      // If there's a session_id, we should redirect to success page instead
+      console.log('PaymentPage: Found session_id, should redirect to success page')
+      setShouldRedirect(`/success?session_id=${sessionId}`)
+      return
+    }
+    
+    // Get assessment data from session storage
+    const data = sessionStorage.getItem('pendingAssessment')
+    if (data) {
+      console.log('PaymentPage: Found assessment data')
+      setAssessmentData(JSON.parse(data))
+    } else {
+      // Only redirect back to upload if no data AND no session_id
+      console.log('PaymentPage: No assessment data found, should redirect to upload')
+      setShouldRedirect('/upload')
+    }
+  }, [isClientSide, authLoading, user])
+
+  // Handle redirects in a separate useEffect to avoid render conflicts
+  useEffect(() => {
+    if (shouldRedirect) {
+      console.log('PaymentPage: Redirecting to:', shouldRedirect)
+      const timeoutId = setTimeout(() => {
+        router.push(shouldRedirect)
+      }, 100) // Small delay to avoid render conflicts
+      
+      return () => clearTimeout(timeoutId)
+    }
+  }, [shouldRedirect, router])
+
+  // Don't render anything during SSR or while loading
+  if (!isClientSide || authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -71,10 +89,31 @@ export default function PaymentPage() {
     )
   }
 
-  // Redirect if not logged in
+  // Show loading while redirecting
+  if (shouldRedirect) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-brand-blue border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p>Redirecting...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Redirect if not logged in (but don't do it during render)
   if (!user) {
-    router.push('/login')
-    return null
+    if (!shouldRedirect) {
+      setShouldRedirect('/login')
+    }
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-brand-blue border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p>Redirecting to login...</p>
+        </div>
+      </div>
+    )
   }
 
   const handlePayment = async () => {
@@ -149,7 +188,7 @@ export default function PaymentPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-brand-blue border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p>Loading...</p>
+          <p>Loading assessment data...</p>
         </div>
       </div>
     )
@@ -158,57 +197,57 @@ export default function PaymentPage() {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
-      <header className="px-4 lg:px-6 h-14 flex items-center border-b">
+      <header className="px-3 sm:px-4 lg:px-6 h-12 sm:h-14 flex items-center border-b bg-white">
         <Link className="flex items-center justify-center" href="/">
           <img 
             src="/skinwise-logo.png.png" 
             alt="SkinWise App" 
-            className="h-10 w-auto"
+            className="h-8 sm:h-10 w-auto"
           />
         </Link>
-        <div className="ml-auto text-sm text-slate-600">
+        <div className="ml-auto text-xs sm:text-sm text-slate-600 truncate max-w-[120px] sm:max-w-none">
           {user.email}
         </div>
       </header>
 
       {/* Main Content */}
-      <div className="flex-1 p-4 bg-gradient-to-br from-slate-50 to-teal-50">
-        <div className="max-w-2xl mx-auto space-y-6">
+      <div className="flex-1 p-3 sm:p-4 lg:p-6 bg-gradient-to-br from-slate-50 to-teal-50">
+        <div className="max-w-2xl mx-auto space-y-4 sm:space-y-6">
           <div className="text-center space-y-2">
-            <h1 className="text-2xl font-bold text-brand-blue">
+            <h1 className="text-xl sm:text-2xl font-bold text-brand-blue px-2">
               Complete Your Assessment
             </h1>
-            <p className="text-slate-600">
+            <p className="text-sm sm:text-base text-slate-600 px-2">
               Secure payment for professional skin health analysis
             </p>
           </div>
 
           {/* Assessment Summary */}
           <Card className="medical-card">
-            <CardHeader>
-              <CardTitle>Assessment Summary</CardTitle>
-              <CardDescription>
+            <CardHeader className="pb-3 sm:pb-6">
+              <CardTitle className="text-base sm:text-lg">Assessment Summary</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">
                 Your submission is ready for professional review
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">Photos uploaded</p>
-                  <p className="text-2xl font-bold text-brand-blue">{assessmentData.files?.length || 0}</p>
+            <CardContent className="space-y-3 sm:space-y-4">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                <div className="space-y-2 text-center sm:text-left">
+                  <p className="text-xs sm:text-sm font-medium">Photos uploaded</p>
+                  <p className="text-xl sm:text-2xl font-bold text-brand-blue">{assessmentData.files?.length || 0}</p>
                 </div>
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">Description provided</p>
-                  <p className="text-2xl font-bold text-brand-blue">
+                <div className="space-y-2 text-center sm:text-left">
+                  <p className="text-xs sm:text-sm font-medium">Description provided</p>
+                  <p className="text-xl sm:text-2xl font-bold text-brand-blue">
                     {assessmentData.description ? '✓' : '✗'}
                   </p>
                 </div>
               </div>
               
               {assessmentData.description && (
-                <div className="border-t pt-4">
-                  <p className="text-sm font-medium mb-2">Your description:</p>
-                  <p className="text-sm text-slate-600 bg-slate-50 p-3 rounded">
+                <div className="border-t pt-3 sm:pt-4">
+                  <p className="text-xs sm:text-sm font-medium mb-2">Your description:</p>
+                  <p className="text-xs sm:text-sm text-slate-600 bg-slate-50 p-2 sm:p-3 rounded">
                     {assessmentData.description.length > 100 
                       ? assessmentData.description.substring(0, 100) + '...'
                       : assessmentData.description
@@ -221,40 +260,40 @@ export default function PaymentPage() {
 
           {/* Payment Card */}
           <Card className="medical-card">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <CreditCard className="w-5 h-5" />
+            <CardHeader className="pb-3 sm:pb-6">
+              <CardTitle className="flex items-center space-x-2 text-base sm:text-lg">
+                <CreditCard className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span>Professional Analysis</span>
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-xs sm:text-sm">
                 One-time payment for comprehensive skin health assessment
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4 sm:space-y-6">
               <div className="text-center">
-                <div className="text-3xl font-bold text-brand-blue">
+                <div className="text-2xl sm:text-3xl font-bold text-brand-blue">
                   {currencyLoading ? '$19.95 USD' : formatPrice(userCurrency)}
                 </div>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 <div className="flex items-center space-x-3">
-                  <Clock className="w-5 h-5 text-green-600" />
-                  <span className="text-sm">Results within 24-48 hours</span>
+                  <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 flex-shrink-0" />
+                  <span className="text-xs sm:text-sm">Results within 24-48 hours</span>
                 </div>
                 <div className="flex items-center space-x-3">
-                  <Users className="w-5 h-5 text-green-600" />
-                  <span className="text-sm">AI-assisted professional review</span>
+                  <Users className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 flex-shrink-0" />
+                  <span className="text-xs sm:text-sm">AI-assisted professional review</span>
                 </div>
                 <div className="flex items-center space-x-3">
-                  <Shield className="w-5 h-5 text-green-600" />
-                  <span className="text-sm">Honest, ethical recommendations</span>
+                  <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 flex-shrink-0" />
+                  <span className="text-xs sm:text-sm">Honest, ethical recommendations</span>
                 </div>
               </div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h4 className="font-medium text-blue-900 mb-2">What you'll receive:</h4>
-                <ul className="text-sm text-blue-800 space-y-1">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
+                <h4 className="font-medium text-blue-900 mb-2 text-sm sm:text-base">What you'll receive:</h4>
+                <ul className="text-xs sm:text-sm text-blue-800 space-y-1">
                   <li>• Preliminary skin health analysis</li>
                   <li>• Root-cause recommendations (hydration, diet, lifestyle)</li>
                   <li>• Product suggestions only when necessary</li>
@@ -266,18 +305,18 @@ export default function PaymentPage() {
               <Button
                 onClick={handlePayment}
                 disabled={loading}
-                className="w-full h-12 bg-brand-blue hover:bg-brand-blue/90"
+                className="w-full h-12 sm:h-12 bg-brand-blue hover:bg-brand-blue/90"
                 size="lg"
               >
                 {loading ? (
                   <div className="flex items-center space-x-2">
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>Processing...</span>
+                    <span className="text-sm sm:text-base">Processing...</span>
                   </div>
                 ) : (
                   <div className="flex items-center space-x-2">
-                    <Shield className="w-5 h-5" />
-                    <span>Complete Secure Payment</span>
+                    <Shield className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <span className="text-sm sm:text-base">Complete Secure Payment</span>
                   </div>
                 )}
               </Button>
@@ -295,11 +334,11 @@ export default function PaymentPage() {
           </Card>
 
           {/* Navigation */}
-          <div className="flex justify-between items-center">
-            <Link href="/upload" className="text-sm text-brand-blue hover:underline">
+          <div className="flex flex-col sm:flex-row justify-between items-center space-y-2 sm:space-y-0 bg-white p-3 sm:p-4 rounded-lg border">
+            <Link href="/upload" className="text-xs sm:text-sm text-brand-blue hover:underline order-2 sm:order-1">
               ← Back to upload
             </Link>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-500 order-1 sm:order-2">
               Secure payment processing
             </p>
           </div>

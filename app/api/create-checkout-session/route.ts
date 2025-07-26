@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
       mode: 'payment',
       success_url: `${req.headers.get('origin')}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get('origin')}/payment`,
-      customer_email: userEmail !== 'anonymous@skinwise.com' ? userEmail : undefined,
+      customer_email: assessmentData.email || userEmail,
       metadata: {
         userId,
         assessmentId: `assessment_${Date.now()}`,

@@ -248,7 +248,6 @@ export default function TermsPage() {
                           legal@skinwise.app
                         </a>
                       </p>
-                      <p><strong>Postal</strong>: [Insert Business Address Here]</p>
                     </div>
                   </div>
                 </section>

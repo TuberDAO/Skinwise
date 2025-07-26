@@ -1,8 +1,7 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { AuthProvider } from '@/components/providers/auth-provider'
-import ResponsivePreview from '@/components/dev/responsive-preview'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -38,19 +37,6 @@ export const metadata: Metadata = {
   category: 'health',
   classification: 'Health & Medical',
   referrer: 'origin-when-cross-origin',
-  colorScheme: 'light',
-  themeColor: '#475569',
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 5,
-    userScalable: true,
-  },
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: 'default',
-    title: 'SkinWise',
-  },
   formatDetection: {
     email: false,
     address: false,
@@ -79,6 +65,20 @@ export const metadata: Metadata = {
     description: 'Get honest, ethical skin health advice from AI-assisted analysis.',
     images: ['/og-image.png'],
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'SkinWise',
+  },
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  themeColor: '#475569',
+  colorScheme: 'light',
 }
 
 export default function RootLayout({
@@ -101,8 +101,6 @@ export default function RootLayout({
             <main className="relative flex min-h-screen flex-col">
               {children}
             </main>
-            {/* Responsive Preview - Development only */}
-            <ResponsivePreview />
           </div>
         </AuthProvider>
       </body>

@@ -205,13 +205,14 @@ export default function SuccessPage() {
                     </Button>
                   </Link>
                   
-                  <Button 
-                    onClick={() => alert('Appointment scheduling feature coming soon! We will provide instructions for this feature shortly. You can wait for your report or contact us directly.')}
-                    className="flex-1 h-14 text-lg font-medium bg-brand-blue hover:bg-brand-blue/90 text-white transition-all"
-                  >
-                    <Calendar className="w-5 h-5 mr-3" />
-                    🩺 Schedule an Online Dermatologist Appointment
-                  </Button>
+                  <Link href="/book-dermatologist" className="flex-1">
+                    <Button 
+                      className="w-full h-14 text-lg font-medium bg-brand-blue hover:bg-brand-blue/90 text-white transition-all"
+                    >
+                      <Calendar className="w-5 h-5 mr-3" />
+                      🩺 Schedule an Online Dermatologist Appointment
+                    </Button>
+                  </Link>
                 </div>
                 
                 {/* Optional note under Schedule button */}

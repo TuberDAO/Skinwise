@@ -15,7 +15,7 @@ import {
   type FirebaseStorage 
 } from 'firebase/storage';
 
-// Firebase configuration using environment variables - NO FALLBACKS to force proper config
+// Firebase configuration using environment variables
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -26,39 +26,14 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-// Validate required environment variables
-const requiredEnvVars = [
-  'NEXT_PUBLIC_FIREBASE_API_KEY',
-  'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN',
-  'NEXT_PUBLIC_FIREBASE_PROJECT_ID',
-  'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET',
-  'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID',
-  'NEXT_PUBLIC_FIREBASE_APP_ID',
-];
+console.log('Firebase config loaded from environment variables:', {
+  apiKey: firebaseConfig.apiKey ? firebaseConfig.apiKey.substring(0, 10) + '...' : 'missing',
+  authDomain: firebaseConfig.authDomain || 'missing',
+  projectId: firebaseConfig.projectId || 'missing',
+  storageBucket: firebaseConfig.storageBucket || 'missing'
+});
 
-const missingEnvVars = requiredEnvVars.filter(
-  (envVar) => !process.env[envVar]
-);
-
-// In development, use placeholder values if env vars are missing
-if (missingEnvVars.length > 0) {
-  console.warn('Missing Firebase environment variables:', missingEnvVars.join(', '));
-  console.warn('Environment check:', {
-    NODE_ENV: process.env.NODE_ENV,
-    hasApiKey: !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-    hasAuthDomain: !!process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-    hasProjectId: !!process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-    hasStorageBucket: !!process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
-  });
-  
-  if (process.env.NODE_ENV !== 'development') {
-    throw new Error(
-      `Missing required Firebase environment variables: ${missingEnvVars.join(', ')}`
-    );
-  }
-}
-
-// Initialize Firebase app (prevent reinitialization) with error handling for development
+// Initialize Firebase app (prevent reinitialization) with error handling
 let app: FirebaseApp;
 let auth: Auth | null = null;
 let firestore: Firestore | null = null;
@@ -72,10 +47,10 @@ try {
     auth = getAuth(app);
     firestore = getFirestore(app);
     storage = getStorage(app);
-    console.log('Firebase initialized successfully');
+    console.log('Firebase services initialized successfully');
   }
 } catch (error) {
-  console.warn('Firebase initialization failed:', error);
+  console.error('Firebase initialization failed:', error);
   // Create mock app for development
   app = {} as FirebaseApp;
   auth = null;
@@ -108,8 +83,6 @@ export const signInWithGoogle = async () => {
     throw error;
   }
 };
-
-
 
 // Export the app instance
 export { app };

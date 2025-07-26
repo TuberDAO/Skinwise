@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState, useRef } from 'react'
 import { User } from 'firebase/auth'
 
 interface AuthContextType {
@@ -15,47 +15,72 @@ const AuthContext = createContext<AuthContextType>({
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true) // Start with loading=true
+  const timeoutRef = useRef<NodeJS.Timeout>()
+  const unsubscribeRef = useRef<(() => void) | null>(null)
 
   useEffect(() => {
-    setLoading(true)
+    console.log('AuthProvider: Initializing authentication listener...')
     
     // Add timeout to prevent hanging
-    const timeoutId = setTimeout(() => {
+    timeoutRef.current = setTimeout(() => {
       console.warn('Auth initialization timeout')
       setLoading(false)
-    }, 5000)
+    }, 10000)
     
-    try {
-      // Dynamic import to avoid SSR issues
-      import('@/firebase').then(({ auth }) => {
-        clearTimeout(timeoutId)
+    const initializeAuth = async () => {
+      try {
+        // Import Firebase auth
+        const { auth } = await import('@/firebase')
+        
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current)
+        }
+        
         if (auth) {
-          import('firebase/auth').then(({ onAuthStateChanged }) => {
-            const unsubscribe = onAuthStateChanged(auth, (user) => {
+          console.log('AuthProvider: Firebase auth available, setting up listener')
+          const { onAuthStateChanged } = await import('firebase/auth')
+          
+          unsubscribeRef.current = onAuthStateChanged(
+            auth,
+            (user) => {
+              console.log('AuthProvider: Auth state changed:', user ? `User logged in: ${user.email}` : 'User logged out')
               setUser(user)
               setLoading(false)
-            })
-            return () => unsubscribe()
-          }).catch((error) => {
-            console.warn('Firebase auth module error:', error)
-            setLoading(false)
-          })
+            },
+            (error) => {
+              console.error('AuthProvider: Auth state change error:', error)
+              setLoading(false)
+            }
+          )
         } else {
-          console.warn('Firebase auth not initialized')
+          console.error('AuthProvider: Firebase auth not initialized')
           setLoading(false)
         }
-      }).catch((error) => {
-        clearTimeout(timeoutId)
-        console.warn('Firebase auth not available:', error)
+      } catch (error) {
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current)
+        }
+        console.error('AuthProvider: Auth initialization failed:', error)
         setLoading(false)
-      })
-    } catch (error) {
-      clearTimeout(timeoutId)
-      console.warn('Auth initialization failed:', error)
-      setLoading(false)
+      }
     }
-  }, [])
+
+    initializeAuth()
+
+    // Cleanup function
+    return () => {
+      console.log('AuthProvider: Cleaning up auth listener')
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+      }
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current()
+      }
+    }
+  }, []) // No dependencies - run once on mount
+
+  console.log('AuthProvider: Current state:', { user: user?.email || 'not logged in', loading })
 
   return (
     <AuthContext.Provider value={{ user, loading }}>

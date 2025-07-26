@@ -15,34 +15,49 @@ export const SUPPORTED_CURRENCIES = {
 export type SupportedCurrency = keyof typeof SUPPORTED_CURRENCIES
 
 export const BASE_PRICE_USD = 19.95
-export const DERMATOLOGIST_PRICE_USD = 149.95
+export const DERMATOLOGIST_PRICE_GBP = 110.00
 
-// Get user's currency based on their location
-export async function detectUserCurrency(): Promise<SupportedCurrency> {
+// Simplified currency detection - avoiding CORS issues and making it consistent
+export const detectUserCurrency = async (): Promise<SupportedCurrency> => {
   try {
-    // Try to get currency from browser locale first
-    const browserCurrency = Intl.NumberFormat().resolvedOptions().currency as SupportedCurrency
-    if (browserCurrency && SUPPORTED_CURRENCIES[browserCurrency]) {
-      return browserCurrency
+    // Check if we already detected currency in this session
+    if (typeof window !== 'undefined') {
+      const storedCurrency = sessionStorage.getItem('detectedCurrency') as SupportedCurrency
+      if (storedCurrency && SUPPORTED_CURRENCIES[storedCurrency]) {
+        console.log('Using stored currency:', storedCurrency)
+        return storedCurrency
+      }
     }
 
-    // Fallback: detect by location using a free IP geolocation service
-    const response = await fetch('https://ipapi.co/json/')
-    const data = await response.json()
-    const countryCode = data.country_code
-
-    // Map common countries to currencies
-    const countryToCurrency: Record<string, SupportedCurrency> = {
-      US: 'USD', CA: 'CAD', GB: 'GBP', AU: 'AUD', JP: 'JPY',
-      SE: 'SEK', NO: 'NOK', DK: 'DKK', CH: 'CHF',
-      // EU countries
-      DE: 'EUR', FR: 'EUR', IT: 'EUR', ES: 'EUR', NL: 'EUR',
-      BE: 'EUR', AT: 'EUR', FI: 'EUR', IE: 'EUR', PT: 'EUR',
+    // Use browser locale for currency detection (only once per session)
+    const locale = navigator.language || 'en-US'
+    let detectedCurrency: SupportedCurrency = 'USD' // Default
+    
+    if (locale.includes('gb') || locale.includes('uk')) {
+      detectedCurrency = 'GBP'
+    } else if (locale.includes('au')) {
+      detectedCurrency = 'AUD'
+    } else if (locale.includes('ca')) {
+      detectedCurrency = 'CAD'
+    } else if (locale.includes('eu') || locale.includes('de') || locale.includes('fr') || locale.includes('es') || locale.includes('it')) {
+      detectedCurrency = 'EUR'
+    } else if (locale.includes('jp')) {
+      detectedCurrency = 'JPY'
     }
-
-    return countryToCurrency[countryCode] || 'USD'
+    
+    // Store the detected currency for the session
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('detectedCurrency', detectedCurrency)
+      console.log('Detected and stored currency:', detectedCurrency, 'from locale:', locale)
+    }
+    
+    return detectedCurrency
   } catch (error) {
-    console.warn('Currency detection failed, defaulting to USD:', error)
+    console.warn('Currency detection failed:', error)
+    // If anything fails, return USD and store it
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('detectedCurrency', 'USD')
+    }
     return 'USD'
   }
 }
@@ -71,10 +86,20 @@ export function convertPrice(currency: SupportedCurrency): { amount: number, cen
   }
 }
 
-// Convert dermatologist price to user's currency
+// Convert dermatologist price to user's currency (base price is £110 GBP)
 export function convertDermatologistPrice(currency: SupportedCurrency): { amount: number, cents: number, symbol: string } {
   const currencyInfo = SUPPORTED_CURRENCIES[currency]
-  const convertedAmount = DERMATOLOGIST_PRICE_USD * currencyInfo.rate
+  const gbpRate = SUPPORTED_CURRENCIES['GBP'].rate
+  
+  // Convert from GBP base price to the target currency
+  let convertedAmount: number
+  if (currency === 'GBP') {
+    convertedAmount = DERMATOLOGIST_PRICE_GBP
+  } else {
+    // Convert GBP to USD first, then to target currency
+    const usdAmount = DERMATOLOGIST_PRICE_GBP / gbpRate
+    convertedAmount = usdAmount * currencyInfo.rate
+  }
   
   // For non-US currencies, round up to whole numbers
   let amount: number
@@ -82,6 +107,8 @@ export function convertDermatologistPrice(currency: SupportedCurrency): { amount
     amount = Math.round(convertedAmount * 100) / 100
   } else if (currency === 'JPY') {
     amount = Math.ceil(convertedAmount) // JPY already has no decimals, just round up
+  } else if (currency === 'GBP') {
+    amount = DERMATOLOGIST_PRICE_GBP // Keep original GBP price
   } else {
     amount = Math.ceil(convertedAmount) // Round up to next whole number for all other currencies
   }
