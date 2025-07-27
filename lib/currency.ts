@@ -30,7 +30,7 @@ export const detectUserCurrency = async (): Promise<SupportedCurrency> => {
     }
 
     // Use browser locale for currency detection (only once per session)
-    const locale = navigator.language || 'en-US'
+    const locale = (navigator.language || 'en-US').toLowerCase()
     let detectedCurrency: SupportedCurrency = 'USD' // Default
     
     if (locale.includes('gb') || locale.includes('uk')) {
