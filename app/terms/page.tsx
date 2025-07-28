@@ -40,7 +40,7 @@ export default function TermsPage() {
                 Unified Terms of Service and Privacy Policy for SkinWise
               </CardTitle>
               <p className="text-center text-sm text-slate-600">
-                <em>Last Updated: [Insert Date Here]</em>
+                <em>Last Updated: 28th July 2025</em>
               </p>
             </CardHeader>
             <CardContent className="prose prose-slate max-w-none space-y-6">
@@ -165,8 +165,8 @@ export default function TermsPage() {
                       <ul className="list-disc pl-6 space-y-2 mt-2">
                         <li>
                           Users may request data deletion or export by emailing{" "}
-                          <a href="mailto:support@skinwise.app" className="text-brand-blue hover:underline">
-                            support@skinwise.app
+                          <a href="mailto:sill.namson@gmx.com" className="text-brand-blue hover:underline">
+                            sill.namson@gmx.com
                           </a>.
                         </li>
                         <li>
@@ -244,8 +244,8 @@ export default function TermsPage() {
                     <div className="mt-2 space-y-1">
                       <p>
                         <strong>Email</strong>:{" "}
-                        <a href="mailto:legal@skinwise.app" className="text-brand-blue hover:underline">
-                          legal@skinwise.app
+                        <a href="mailto:sill.namson@gmx.com" className="text-brand-blue hover:underline">
+                          sill.namson@gmx.com
                         </a>
                       </p>
                     </div>

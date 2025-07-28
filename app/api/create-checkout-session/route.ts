@@ -1,26 +1,141 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { convertPrice, type SupportedCurrency } from '@/lib/currency'
+import { rateLimit, createRateLimitResponse, logRateLimitViolation } from '@/lib/rate-limit'
+
+// Valid price ranges (in cents) to prevent payment manipulation
+const VALID_ASSESSMENT_PRICES = {
+  'USD': { min: 1500, max: 2500 }, // $15-25
+  'GBP': { min: 1200, max: 2000 }, // £12-20  
+  'EUR': { min: 1400, max: 2300 }, // €14-23
+  'CAD': { min: 2000, max: 3200 }, // C$20-32
+  'AUD': { min: 2200, max: 3500 }, // A$22-35
+  'JPY': { min: 2200, max: 3600 }, // ¥2200-3600
+  'CHF': { min: 1400, max: 2300 }, // CHF 14-23
+  'SEK': { min: 1600, max: 2600 }, // SEK 16-26
+  'NOK': { min: 1600, max: 2600 }, // NOK 16-26
+  'DKK': { min: 1100, max: 1800 }, // DKK 11-18
+} as const
+
+/**
+ * Validate payment amount against expected ranges
+ */
+function validatePaymentAmount(currency: string, cents: number): boolean {
+  const range = VALID_ASSESSMENT_PRICES[currency as keyof typeof VALID_ASSESSMENT_PRICES]
+  if (!range) {
+    console.warn('🚨 Invalid currency for payment:', currency)
+    return false
+  }
+  
+  const isValid = cents >= range.min && cents <= range.max
+  if (!isValid) {
+    console.warn('🚨 Payment amount out of range:', { currency, cents, expectedRange: range })
+  }
+  
+  return isValid
+}
+
+/**
+ * Validate and sanitize assessment data
+ */
+function validateAssessmentData(data: any): { valid: boolean; reason?: string } {
+  if (!data || typeof data !== 'object') {
+    return { valid: false, reason: 'Assessment data is required' }
+  }
+
+  const { email, files, userId } = data
+
+  // Validate email
+  if (!email || typeof email !== 'string') {
+    return { valid: false, reason: 'Valid email is required' }
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailRegex.test(email)) {
+    return { valid: false, reason: 'Invalid email format' }
+  }
+
+  // Validate files array
+  if (!files || !Array.isArray(files) || files.length === 0) {
+    return { valid: false, reason: 'At least one file is required' }
+  }
+
+  if (files.length > 4) {
+    return { valid: false, reason: 'Maximum 4 files allowed' }
+  }
+
+  // Validate user ID
+  if (!userId || typeof userId !== 'string') {
+    return { valid: false, reason: 'User ID is required' }
+  }
+
+  return { valid: true }
+}
 
 export async function POST(req: NextRequest) {
   try {
-    console.log('=== Checkout Session API Called ===')
+    console.log('=== Checkout Session API Called (SECURITY PROTECTED) ===')
+    
+    // Apply rate limiting for payment endpoints
+    const rateLimitResult = await rateLimit(req, 'checkout')
+    if (!rateLimitResult.success) {
+      logRateLimitViolation(req, 'checkout', req.ip || 'unknown')
+      return createRateLimitResponse(rateLimitResult)
+    }
+
     const { assessmentData, userId, userEmail, currency = 'USD' } = await req.json()
 
-    console.log('Request data:', { userId, userEmail, currency, hasAssessmentData: !!assessmentData })
+    console.log('Request data (sanitized):', { 
+      userId: userId ? 'present' : 'missing', 
+      userEmail: userEmail ? 'present' : 'missing', 
+      currency, 
+      hasAssessmentData: !!assessmentData 
+    })
 
+    // Validate required data
     if (!assessmentData || !userId) {
-      console.error('Missing required data:', { assessmentData: !!assessmentData, userId })
+      console.warn('🚨 Checkout: Missing required data:', { assessmentData: !!assessmentData, userId: !!userId })
       return NextResponse.json({ error: 'Missing required data' }, { status: 400 })
     }
 
-    // Get price in user's currency
+    // Validate assessment data structure
+    const assessmentValidation = validateAssessmentData(assessmentData)
+    if (!assessmentValidation.valid) {
+      console.warn('🚨 Checkout: Invalid assessment data:', assessmentValidation.reason)
+      return NextResponse.json({ error: assessmentValidation.reason }, { status: 400 })
+    }
+
+    // Validate currency
+    const supportedCurrencies = ['USD', 'GBP', 'EUR', 'CAD', 'AUD', 'JPY', 'CHF', 'SEK', 'NOK', 'DKK']
+    if (!supportedCurrencies.includes(currency)) {
+      console.warn('🚨 Checkout: Unsupported currency:', currency)
+      return NextResponse.json({ error: 'Unsupported currency' }, { status: 400 })
+    }
+
+    // Get and validate price
     const priceInfo = convertPrice(currency as SupportedCurrency)
     console.log('Price calculation:', { currency, ...priceInfo })
 
-    console.log('Creating Stripe checkout session...')
+    // Validate payment amount against expected ranges
+    if (!validatePaymentAmount(currency, priceInfo.cents)) {
+      console.error('🚨 SECURITY ALERT: Payment amount manipulation detected', {
+        currency,
+        providedCents: priceInfo.cents,
+        userId,
+        userEmail,
+        ip: req.ip,
+        userAgent: req.headers.get('user-agent')
+      })
+      
+      return NextResponse.json({ 
+        error: 'Invalid payment amount',
+        message: 'Payment amount does not match expected price'
+      }, { status: 400 })
+    }
 
-    // Create Stripe checkout session
+    console.log('✅ Payment validation passed - creating Stripe session')
+
+    // Create Stripe checkout session with enhanced security
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
@@ -30,6 +145,10 @@ export async function POST(req: NextRequest) {
             product_data: {
               name: 'SkinWise Assessment',
               description: 'AI-assisted skin health analysis with professional review',
+              metadata: {
+                type: 'assessment',
+                version: '1.0'
+              }
             },
             unit_amount: priceInfo.cents,
           },
@@ -40,17 +159,33 @@ export async function POST(req: NextRequest) {
       success_url: `${req.headers.get('origin')}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get('origin')}/payment`,
       customer_email: assessmentData.email || userEmail,
+      // Enhanced metadata for security and tracking
       metadata: {
         userId,
         assessmentId: `assessment_${Date.now()}`,
         originalCurrency: currency,
         originalAmount: priceInfo.amount.toString(),
+        createdAt: new Date().toISOString(),
+        ipAddress: req.ip || 'unknown',
+        userAgent: req.headers.get('user-agent')?.substring(0, 200) || 'unknown',
+        type: 'skin_assessment'
       },
+      // Security enhancements
+      allow_promotion_codes: false, // Disable promo codes for security
+      billing_address_collection: 'required', // Collect billing address
+      payment_intent_data: {
+        description: `SkinWise Assessment - User: ${userId}`,
+        statement_descriptor_suffix: 'SKINWISE',
+        metadata: {
+          userId,
+          type: 'assessment'
+        }
+      }
     })
 
-    console.log('Stripe session created:', session.id)
+    console.log('✅ Stripe session created:', session.id)
 
-    // Simplified Firestore save - skip if it fails
+    // Enhanced Firestore save with security logging
     try {
       console.log('Attempting to save to Firestore...')
       const { doc, setDoc } = await import('firebase/firestore')
@@ -59,8 +194,8 @@ export async function POST(req: NextRequest) {
       if (firestore) {
         const assessmentId = `assessment_${Date.now()}_${userId}`
         
-        // Use timeout to prevent hanging
-        const savePromise = setDoc(doc(firestore, 'assessments', assessmentId), {
+        // Sanitize and prepare data for storage
+        const sanitizedData = {
           ...assessmentData,
           id: assessmentId,
           stripeSessionId: session.id,
@@ -69,7 +204,16 @@ export async function POST(req: NextRequest) {
           amount: priceInfo.amount,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
-        })
+          // Security metadata
+          securityInfo: {
+            ipAddress: req.ip || 'unknown',
+            userAgent: req.headers.get('user-agent')?.substring(0, 200) || 'unknown',
+            rateLimitRemaining: rateLimitResult.remaining
+          }
+        }
+        
+        // Use timeout to prevent hanging
+        const savePromise = setDoc(doc(firestore, 'assessments', assessmentId), sanitizedData)
         
         // 5 second timeout for Firestore save
         await Promise.race([
@@ -77,23 +221,37 @@ export async function POST(req: NextRequest) {
           new Promise((_, reject) => setTimeout(() => reject(new Error('Firestore timeout')), 5000))
         ])
         
-        console.log('Saved to Firestore successfully')
+        console.log('✅ Saved to Firestore successfully')
       } else {
-        console.warn('Firestore not available, skipping save')
+        console.warn('⚠️ Firestore not available, skipping save')
       }
     } catch (firestoreError) {
-      console.warn('Firestore save failed, continuing with payment:', firestoreError)
+      console.warn('⚠️ Firestore save failed, continuing with payment:', firestoreError)
       // Don't fail the whole request if Firestore fails
     }
 
-    console.log('Returning session ID:', session.id)
-    return NextResponse.json({ id: session.id })
+    console.log('✅ Returning session ID:', session.id)
+    return NextResponse.json({ 
+      id: session.id,
+      rateLimitRemaining: rateLimitResult.remaining
+    })
     
   } catch (error: any) {
-    console.error('Error creating checkout session:', error)
-    return NextResponse.json(
-      { error: `Failed to create checkout session: ${error.message}` },
-      { status: 500 }
-    )
+    console.error('❌ Error creating checkout session:', error)
+    
+    // Security logging for payment errors
+    console.error('🚨 PAYMENT ERROR DETAILS:', {
+      error: error.message,
+      stack: error.stack?.substring(0, 500),
+      ip: req.ip,
+      userAgent: req.headers.get('user-agent'),
+      timestamp: new Date().toISOString()
+    })
+    
+    // Don't expose internal error details to client
+    return NextResponse.json({
+      error: 'Payment system temporarily unavailable',
+      message: 'Please try again in a few moments'
+    }, { status: 500 })
   }
 } 

@@ -15,6 +15,7 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { auth, storage, firestore } from '@/firebase'
 import { formatFileSize } from '@/lib/utils'
 import { detectUserCurrency, formatPrice, getUserCurrencyFromLocale, type SupportedCurrency } from '@/lib/currency'
+import { validateFiles, logFileUploadAttempt, createSecureUploadPath } from '@/lib/file-validation'
 
 interface UploadedFile {
   id: string
@@ -29,7 +30,7 @@ export default function UploadPage() {
   const router = useRouter()
   const [files, setFiles] = useState<UploadedFile[]>([])
   const [textDescription, setTextDescription] = useState('')
-  const [userEmail, setUserEmail] = useState('')
+
   const [symptomDuration, setSymptomDuration] = useState('')
   const [productUsage, setProductUsage] = useState('')
   const [recentChanges, setRecentChanges] = useState('')
@@ -68,7 +69,6 @@ export default function UploadPage() {
     if (typeof window !== 'undefined') {
       const state = {
         textDescription,
-        userEmail,
         symptomDuration,
         productUsage,
         recentChanges,
@@ -76,7 +76,7 @@ export default function UploadPage() {
       }
       localStorage.setItem('uploadState', JSON.stringify(state))
     }
-  }, [textDescription, userEmail, symptomDuration, productUsage, recentChanges])
+  }, [textDescription, symptomDuration, productUsage, recentChanges])
 
   // Load state from localStorage
   const loadStateFromStorage = useCallback(() => {
@@ -88,7 +88,6 @@ export default function UploadPage() {
           // Only restore if less than 1 hour old
           if (Date.now() - state.timestamp < 3600000) {
             setTextDescription(state.textDescription || '')
-            setUserEmail(state.userEmail || '')
             setSymptomDuration(state.symptomDuration || '')
             setProductUsage(state.productUsage || '')
             setRecentChanges(state.recentChanges || '')
@@ -303,81 +302,97 @@ export default function UploadPage() {
   }
 
   const handleSubmit = async () => {
-    console.log('=== Form Submission Started ===')
+    console.log('=== Form Submission Started (SECURITY PROTECTED) ===')
     console.log('Files:', files.length)
-    console.log('User email:', userEmail)
+    console.log('User email:', user?.email)
     console.log('User ID:', user?.uid)
     console.log('Firebase auth:', !!auth)
     console.log('Firebase firestore:', !!firestore)
     console.log('Firebase storage:', !!storage)
 
-    // Validate required fields
-    if (files.length === 0) {
-      console.error('Validation failed: No files uploaded')
-      alert('Please upload at least one photo')
-      return
-    }
-
-    if (!userEmail.trim()) {
-      console.error('Validation failed: No email provided')
-      alert('Please enter your email address for confirmations')
-      return
-    }
-
-    // Basic email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(userEmail)) {
-      console.error('Validation failed: Invalid email format')
-      alert('Please enter a valid email address')
-      return
-    }
-
-    if (!user?.uid) {
-      console.error('Validation failed: No user ID')
-      alert('Authentication error. Please log in again.')
-      router.push('/login')
-      return
-    }
-
-    if (!firestore) {
-      console.error('Validation failed: Firestore not initialized')
-      alert('Database connection error. Please check your internet connection and try again.')
-      return
-    }
-
-    if (!storage) {
-      console.error('Validation failed: Storage not initialized')
-      alert('File storage not available. Please check your internet connection and try again.')
-      return
-    }
-
-    console.log('=== All validations passed, starting upload ===')
-
     try {
+      // Enhanced file validation with security checks
+      const fileObjects = files.map(f => f.file)
+      const validationResult = await validateFiles(fileObjects)
+      
+      if (!validationResult.valid) {
+        console.error('🚨 File validation failed:', validationResult.error)
+        logFileUploadAttempt(user?.uid || 'unknown', fileObjects, validationResult.results, false)
+        
+        // Show specific validation errors
+        const firstError = validationResult.results.find(r => !r.valid)?.error
+        alert(`File validation failed: ${firstError || validationResult.error}`)
+        return
+      }
+
+      // Log successful file validation
+      console.log('✅ All files passed security validation')
+      logFileUploadAttempt(user?.uid || 'unknown', fileObjects, validationResult.results, true)
+
+      // Validate required fields
+      if (files.length === 0) {
+        console.error('Validation failed: No files uploaded')
+        alert('Please upload at least one photo')
+        return
+      }
+
+
+
+      if (!user?.uid) {
+        console.error('Validation failed: No user ID')
+        alert('Authentication error. Please log in again.')
+        router.push('/login')
+        return
+      }
+
+      if (!firestore) {
+        console.error('Validation failed: Firestore not initialized')
+        alert('Database connection error. Please check your internet connection and try again.')
+        return
+      }
+
+      if (!storage) {
+        console.error('Validation failed: Storage not initialized')
+        alert('File storage not available. Please check your internet connection and try again.')
+        return
+      }
+
+      console.log('=== All validations passed, starting secure upload ===')
+
       setUploading(true)
       
-      // Upload files to Firebase Storage first
-      console.log('Starting file upload...')
-      const uploadedUrls = await uploadFiles()
+      // Enhanced file upload with security
+      console.log('Starting secure file upload...')
+      const uploadedUrls = await uploadFilesSecurely()
       console.log('Files uploaded successfully:', uploadedUrls.length, 'files')
       
-      // Create assessment document in Firestore
+      // Create assessment document in Firestore with enhanced security
       const assessmentData = {
-        email: userEmail.trim(),
+        email: user.email?.toLowerCase() || '', // Use authenticated user's email
         timestamp: serverTimestamp(),
-        description: textDescription.trim(),
-        duration: symptomDuration.trim(),
-        products: productUsage.trim(),
-        lifestyleChanges: recentChanges.trim(),
+        description: textDescription.trim().substring(0, 2000), // Limit description length
+        duration: symptomDuration.trim().substring(0, 100),
+        products: productUsage.trim().substring(0, 200),
+        lifestyleChanges: recentChanges.trim().substring(0, 200),
         files: uploadedUrls,
         userId: user.uid,
-        status: 'pending_payment'
+        status: 'pending_payment',
+        // Security metadata
+        ipAddress: 'client-side', // This would be set server-side in production
+        userAgent: navigator.userAgent.substring(0, 200),
+        uploadTimestamp: new Date().toISOString(),
+        fileValidation: {
+          totalSize: validationResult.totalSize,
+          fileCount: files.length,
+          allValid: true
+        }
       }
       
       console.log('Saving assessment to Firestore...', {
         email: assessmentData.email,
         filesCount: assessmentData.files.length,
-        userId: assessmentData.userId
+        userId: assessmentData.userId,
+        securityChecks: 'passed'
       })
       
       // Save to Firestore assessments collection
@@ -400,47 +415,87 @@ export default function UploadPage() {
         console.log('SessionStorage updated, localStorage cleared')
       }
       
-      console.log('=== Submission successful, navigating to payment ===')
+      console.log('=== Upload successful, redirecting to payment ===')
       
-      // Clean up URL objects before navigation
-      cleanupPreviews()
+      // Use window.location for more reliable navigation
+      window.location.href = '/payment'
       
-      // Use window.location instead of router.push to ensure navigation
-      if (typeof window !== 'undefined') {
-        window.location.href = '/payment'
-      } else {
-        router.push('/payment')
-      }
+    } catch (error: any) {
+      console.error('❌ Upload error:', error)
       
-    } catch (error) {
-      console.error('=== Upload/Save error ===', error)
-      console.error('Error details:', {
-        message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-        name: error instanceof Error ? error.name : undefined
+      // Enhanced error logging
+      console.error('🚨 UPLOAD ERROR DETAILS:', {
+        error: error.message,
+        stack: error.stack?.substring(0, 500),
+        userId: user?.uid,
+        timestamp: new Date().toISOString()
       })
       
-      // Provide more specific error messages
-      let errorMessage = 'An unexpected error occurred. Please try again.'
-      
-      if (error instanceof Error) {
-        if (error.message.includes('auth')) {
-          errorMessage = 'Authentication error. Please log in again.'
-        } else if (error.message.includes('storage')) {
-          errorMessage = 'File upload failed. Please check your internet connection and try again.'
-        } else if (error.message.includes('firestore') || error.message.includes('document')) {
-          errorMessage = 'Database error. Please try again in a few moments.'
-        } else if (error.message.includes('permission')) {
-          errorMessage = 'Permission denied. Please log in again.'
-        } else {
-          errorMessage = `Error: ${error.message}`
-        }
-      }
-      
-      alert(`Submission failed: ${errorMessage}\n\nPlease check the console for technical details and try again.`)
-    } finally {
       setUploading(false)
+      
+      // User-friendly error messages
+      if (error.code === 'storage/unauthorized') {
+        alert('Authentication error. Please log in again and try uploading.')
+        router.push('/login')
+      } else if (error.code === 'storage/quota-exceeded') {
+        alert('Storage quota exceeded. Please try again later or contact support.')
+      } else if (error.message.includes('network')) {
+        alert('Network error. Please check your internet connection and try again.')
+      } else {
+        alert('Upload failed. Please try again or contact support if the problem persists.')
+      }
     }
+  }
+
+  // Enhanced secure file upload function
+  const uploadFilesSecurely = async (): Promise<string[]> => {
+    if (!storage || !user?.uid) {
+      throw new Error('Storage or user not available')
+    }
+
+    const uploadedUrls: string[] = []
+    
+    console.log(`🔒 Starting secure upload of ${files.length} files`)
+    
+    for (let i = 0; i < files.length; i++) {
+      const fileData = files[i]
+      
+      try {
+        console.log(`Uploading file ${i + 1}/${files.length}: ${fileData.file.name} (${formatFileSize(fileData.file.size)})`)
+        
+        // Use secure upload path
+        const securePath = createSecureUploadPath(user.uid, fileData.file.name)
+        const storageRef = ref(storage, securePath)
+        
+        console.log(`🔒 Secure storage path: ${storageRef.fullPath}`)
+        
+        // Upload with metadata
+        const metadata = {
+          contentType: fileData.file.type,
+          customMetadata: {
+            originalName: fileData.file.name,
+            uploadedBy: user.uid,
+            uploadedAt: new Date().toISOString(),
+            fileSize: fileData.file.size.toString(),
+            securityValidated: 'true'
+          }
+        }
+        
+        const snapshot = await uploadBytes(storageRef, fileData.file, metadata)
+        console.log(`File ${i + 1} uploaded successfully, getting download URL...`)
+        
+        const downloadURL = await getDownloadURL(snapshot.ref)
+        uploadedUrls.push(downloadURL)
+        
+        console.log(`✅ File ${i + 1} complete: ${downloadURL.substring(0, 50)}...`)
+      } catch (error) {
+        console.error(`❌ Failed to upload file ${i + 1} (${fileData.file.name}):`, error)
+        throw new Error(`Failed to upload file "${fileData.file.name}": ${error instanceof Error ? error.message : 'Unknown error'}`)
+      }
+    }
+    
+    console.log(`✅ All ${uploadedUrls.length} files uploaded securely`)
+    return uploadedUrls
   }
 
   const startRecording = () => {
@@ -635,21 +690,7 @@ export default function UploadPage() {
                 )}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="userEmail" className="font-semibold text-sm sm:text-base">Email Address *</Label>
-                <Input
-                  id="userEmail"
-                  type="email"
-                  value={userEmail}
-                  onChange={(e) => setUserEmail(e.target.value)}
-                  placeholder="Enter your email address for confirmations"
-                  className="border-2 border-slate-500 bg-white font-medium placeholder:text-slate-500 focus-visible:ring-brand-blue focus-visible:border-brand-blue shadow-sm text-sm sm:text-base"
-                  required
-                />
-                <p className="text-xs text-slate-600">
-                  We'll send you email confirmations for your assessment and any appointments you book.
-                </p>
-              </div>
+
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
                 <div className="space-y-2">
@@ -694,7 +735,7 @@ export default function UploadPage() {
             </Link>
             <Button
               onClick={handleSubmit}
-              disabled={files.length === 0 || uploading || !userEmail.trim()}
+              disabled={files.length === 0 || uploading}
               className="bg-brand-blue hover:bg-brand-blue/90 w-full sm:w-auto order-1 sm:order-2"
               size="lg"
             >

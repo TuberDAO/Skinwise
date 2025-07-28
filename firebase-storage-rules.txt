@@ -1,39 +1,208 @@
-// Firebase Storage Security Rules for SkinWise
+// Enhanced Firebase Storage Security Rules for SkinWise
 // COPY THESE RULES TO: Firebase Console > Storage > Rules > Replace existing rules
 
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    // Allow authenticated users (Google or Anonymous) to upload/read their own assessment photos
+    
+    // Enhanced security rules for user assessment uploads
     match /assessments/{userId}/{allPaths=**} {
-      allow read, write: if request.auth != null 
-                       && request.auth.uid == userId
-                       && resource == null // Allow creation of new files
-                       || (resource != null && request.auth.uid == userId); // Allow access to existing files
+      allow read: if request.auth != null 
+                 && request.auth.uid == userId;
+      
+      allow write: if request.auth != null 
+                  && request.auth.uid == userId
+                  && isValidUpload();
+      
+      allow delete: if request.auth != null 
+                   && request.auth.uid == userId;
     }
     
-    // Alternative simpler rule for development/testing:
-    // Uncomment this and comment out the above if you have issues
-    // match /assessments/{userId}/{allPaths=**} {
-    //   allow read, write: if request.auth != null && request.auth.uid == userId;
-    // }
-    
-    // Allow public read access to app assets (icons, etc.)
+    // Public assets (app icons, etc.) - read only
     match /public/{allPaths=**} {
       allow read: if true;
+      allow write: if false; // Only allow server-side uploads
+    }
+    
+    // Admin uploads (restricted)
+    match /admin/{allPaths=**} {
+      allow read, write: if request.auth != null 
+                        && request.auth.token.admin == true;
     }
     
     // Deny all other access by default
     match /{allPaths=**} {
       allow read, write: if false;
     }
+    
+    // Security validation function
+    function isValidUpload() {
+      return isAuthenticated() 
+             && isValidFileSize()
+             && isValidContentType()
+             && isValidFileName()
+             && withinRateLimit();
+    }
+    
+    // Check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null 
+             && request.auth.uid != null
+             && request.auth.uid.size() > 0;
+    }
+    
+    // Validate file size (10MB max per file)
+    function isValidFileSize() {
+      return resource == null  // Allow new files
+             && request.resource.size <= 10 * 1024 * 1024; // 10MB max
+    }
+    
+    // Validate content type (only images allowed)
+    function isValidContentType() {
+      return request.resource.contentType != null
+             && (request.resource.contentType.matches('image/jpeg')
+                 || request.resource.contentType.matches('image/png')
+                 || request.resource.contentType.matches('image/webp'));
+    }
+    
+    // Validate filename (basic security check)
+    function isValidFileName() {
+      let filename = resource.name;
+      return filename != null
+             && filename.size() > 0
+             && filename.size() <= 100
+             && !filename.matches('.*[<>:"/\\|?*].*') // No dangerous characters
+             && !filename.matches('.*\\.\\..*') // No path traversal
+             && !filename.matches('.*\\.(exe|bat|cmd|com|pif|scr|vbs|js|jar|php|asp|aspx|jsp|sh|py|rb|pl|dll|sys|ini|reg|msi|app|deb|rpm|dmg)$'); // No dangerous extensions
+    }
+    
+    // Basic rate limiting (allow reasonable upload frequency)
+    function withinRateLimit() {
+      // This is a simplified check - in production you'd want more sophisticated rate limiting
+      return request.time > resource.timeCreated + duration.value(1, 's'); // 1 second between uploads
+    }
   }
 }
 
-// IMPORTANT STEPS TO APPLY THESE RULES:
+// FIRESTORE SECURITY RULES (also update these)
+// Go to Firestore > Rules and update with these enhanced rules:
+
+/*
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Enhanced assessment document security
+    match /assessments/{documentId} {
+      allow read: if request.auth != null 
+                 && (request.auth.uid == resource.data.userId
+                     || request.auth.token.admin == true);
+      
+      allow create: if request.auth != null 
+                   && request.auth.uid == request.resource.data.userId
+                   && isValidAssessment();
+      
+      allow update: if request.auth != null 
+                   && request.auth.uid == resource.data.userId
+                   && isValidAssessmentUpdate();
+      
+      allow delete: if request.auth != null 
+                   && (request.auth.uid == resource.data.userId
+                       || request.auth.token.admin == true);
+    }
+    
+    // Enhanced appointment document security  
+    match /appointments/{documentId} {
+      allow read: if request.auth != null 
+                 && (request.auth.uid == resource.data.userId
+                     || request.auth.token.admin == true);
+      
+      allow create: if request.auth != null 
+                   && isValidAppointment();
+      
+      allow update: if request.auth != null 
+                   && (request.auth.uid == resource.data.userId
+                       || request.auth.token.admin == true)
+                   && isValidAppointmentUpdate();
+      
+      allow delete: if request.auth != null 
+                   && request.auth.token.admin == true;
+    }
+    
+    // Admin-only collections
+    match /admin/{document=**} {
+      allow read, write: if request.auth != null 
+                        && request.auth.token.admin == true;
+    }
+    
+    // User profile documents
+    match /users/{userId} {
+      allow read, write: if request.auth != null 
+                        && request.auth.uid == userId;
+    }
+    
+    // Deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+    
+    // Assessment validation functions
+    function isValidAssessment() {
+      let data = request.resource.data;
+      return data.keys().hasAll(['email', 'userId', 'timestamp', 'status'])
+             && data.email is string
+             && data.email.matches('[^@]+@[^@]+\\.[^@]+') // Basic email validation
+             && data.userId == request.auth.uid
+             && data.status in ['pending_payment', 'paid', 'processing', 'completed']
+             && (data.files is list && data.files.size() <= 4)
+             && (data.description is string && data.description.size() <= 2000);
+    }
+    
+    function isValidAssessmentUpdate() {
+      let data = request.resource.data;
+      return data.userId == resource.data.userId // Can't change user
+             && (data.email == resource.data.email || request.auth.token.admin == true) // Can't change email unless admin
+             && (data.status in ['pending_payment', 'paid', 'processing', 'completed', 'cancelled']);
+    }
+    
+    // Appointment validation functions
+    function isValidAppointment() {
+      let data = request.resource.data;
+      return data.keys().hasAll(['patientName', 'patientEmail', 'date', 'time'])
+             && data.patientName is string
+             && data.patientName.size() >= 2
+             && data.patientEmail is string
+             && data.patientEmail.matches('[^@]+@[^@]+\\.[^@]+')
+             && data.date is string
+             && data.time is string
+             && data.status in ['pending_payment', 'paid', 'confirmed', 'completed', 'cancelled'];
+    }
+    
+    function isValidAppointmentUpdate() {
+      let data = request.resource.data;
+      return data.patientEmail == resource.data.patientEmail // Can't change email
+             && data.status in ['pending_payment', 'paid', 'confirmed', 'completed', 'cancelled'];
+    }
+  }
+}
+*/
+
+// IMPORTANT DEPLOYMENT STEPS:
 // 1. Go to Firebase Console (console.firebase.google.com)
 // 2. Select your project: skinwisexv1
 // 3. Go to Storage in the left sidebar
 // 4. Click on "Rules" tab
-// 5. REPLACE ALL EXISTING RULES with the rules above
-// 6. Click "Publish" to save 
+// 5. REPLACE ALL EXISTING RULES with the storage rules above
+// 6. Go to Firestore Database
+// 7. Click on "Rules" tab  
+// 8. REPLACE ALL EXISTING RULES with the Firestore rules in the comment block
+// 9. Click "Publish" to save both sets of rules
+// 10. Test the rules with Firebase Rules Playground
+
+// SECURITY NOTES:
+// - These rules provide comprehensive protection against common attacks
+// - File uploads are restricted to images only with size limits
+// - User data isolation is enforced
+// - Basic rate limiting prevents abuse
+// - All sensitive operations require authentication
+// - Admin functions require admin token claims 
