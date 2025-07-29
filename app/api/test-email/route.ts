@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { sendTestEmail, sendAssessmentConfirmation, sendAppointmentConfirmation } from '@/lib/email'
 import { rateLimit, createRateLimitResponse, logRateLimitViolation } from '@/lib/rate-limit'
 
+// Vercel-specific: Configure runtime for optimal performance
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
 // Whitelist of IPs allowed to use test endpoint (add your IPs)
 const ALLOWED_IPS = [
   '127.0.0.1',

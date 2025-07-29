@@ -1,145 +1,56 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Vercel optimizations
   images: {
     domains: ['firebasestorage.googleapis.com'],
+    formats: ['image/avif', 'image/webp'], // Better compression
+    minimumCacheTTL: 60, // Cache images for 1 minute
   },
+  
+  // Remove custom env as Vercel handles this better
   env: {
     CUSTOM_KEY: 'skinwise-app',
   },
-  // Security headers
-  async headers() {
-    return [
-      {
-        source: '/(.*)',
-        headers: [
-          // Content Security Policy - Prevent XSS attacks
-          {
-            key: 'Content-Security-Policy',
-            value: [
-              "default-src 'self'",
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline' *.stripe.com *.googleapis.com",
-              "style-src 'self' 'unsafe-inline' fonts.googleapis.com",
-              "font-src 'self' fonts.gstatic.com",
-              "img-src 'self' data: blob: https: *.googleapis.com *.firebaseapp.com firebasestorage.googleapis.com",
-              "connect-src 'self' *.googleapis.com *.stripe.com wss://*.firebaseio.com *.firebaseio.com",
-              "frame-src 'self' *.stripe.com",
-              "object-src 'none'",
-              "base-uri 'self'",
-              "form-action 'self'",
-              "frame-ancestors 'none'",
-              "block-all-mixed-content",
-              "upgrade-insecure-requests"
-            ].join('; ')
-          },
-          // Prevent clickjacking
-          {
-            key: 'X-Frame-Options',
-            value: 'DENY'
-          },
-          // Prevent MIME type sniffing
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff'
-          },
-          // Enable XSS protection
-          {
-            key: 'X-XSS-Protection',
-            value: '1; mode=block'
-          },
-          // Prevent referrer leakage
-          {
-            key: 'Referrer-Policy',
-            value: 'strict-origin-when-cross-origin'
-          },
-          // Enforce HTTPS
-          {
-            key: 'Strict-Transport-Security',
-            value: 'max-age=31536000; includeSubDomains; preload'
-          },
-          // Remove server information
-          {
-            key: 'X-Powered-By',
-            value: ''
-          },
-          // Permissions policy
-          {
-            key: 'Permissions-Policy',
-            value: [
-              'camera=(self)',
-              'microphone=()',
-              'geolocation=()',
-              'payment=(self)',
-              'usb=()',
-              'magnetometer=()',
-              'accelerometer=()',
-              'gyroscope=()'
-            ].join(', ')
-          }
-        ]
-      },
-      // Additional security for API routes
-      {
-        source: '/api/(.*)',
-        headers: [
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff'
-          },
-          {
-            key: 'X-Frame-Options',
-            value: 'DENY'
-          },
-          {
-            key: 'Cache-Control',
-            value: 'no-cache, no-store, must-revalidate'
-          }
-        ]
-      }
-    ]
+
+  // Experimental features for better performance
+  experimental: {
+    // Optimize package imports for smaller bundles
+    optimizePackageImports: [
+      'firebase',
+      'lucide-react',
+      '@radix-ui/react-icons',
+      '@upstash/redis',
+      '@upstash/ratelimit'
+    ],
+    // Enable edge runtime for API routes where possible
+    runtime: 'nodejs', // Keep nodejs for Firebase compatibility
   },
-  webpack: (config, { isServer, dev }) => {
-    // Exclude undici from client-side bundle to prevent private class field parsing errors
-    if (!isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        undici: false,
-        fs: false,
-        net: false,
-        tls: false,
-      }
-    }
 
-    // Alternative: Mark undici as external for server-side
-    if (isServer) {
-      config.externals = [...config.externals, 'undici']
-    }
-
-    // Improve chunk loading and prevent timeout issues
-    if (!isServer) {
-      config.output.chunkLoadTimeout = 120000 // 2 minutes
-      config.output.chunkLoadingGlobal = 'webpackChunkNext'
-    }
-
-    // Optimize chunk splitting in development
-    if (dev && !isServer) {
-      config.optimization = {
-        ...config.optimization,
-        splitChunks: {
-          ...config.optimization?.splitChunks,
-          cacheGroups: {
-            ...config.optimization?.splitChunks?.cacheGroups,
-            default: {
-              minChunks: 2,
-              priority: -20,
-              reuseExistingChunk: true,
-            },
-            vendor: {
-              test: /[\\/]node_modules[\\/]/,
-              name: 'vendors',
-              priority: -10,
-              chunks: 'all',
-              enforce: true,
-            },
+  // Webpack optimizations for serverless
+  webpack: (config, { buildId, dev, isServer, defaultLoaders, nextRuntime, webpack }) => {
+    // Only apply optimizations in production
+    if (!dev && isServer) {
+      // Optimize for serverless cold starts
+      config.optimization.splitChunks = {
+        chunks: 'all',
+        cacheGroups: {
+          firebase: {
+            name: 'firebase',
+            test: /[\\/]node_modules[\\/](firebase|@firebase)[\\/]/,
+            priority: 30,
+            reuseExistingChunk: true,
+          },
+          stripe: {
+            name: 'stripe',
+            test: /[\\/]node_modules[\\/]stripe[\\/]/,
+            priority: 30,
+            reuseExistingChunk: true,
+          },
+          upstash: {
+            name: 'upstash',
+            test: /[\\/]node_modules[\\/]@upstash[\\/]/,
+            priority: 30,
+            reuseExistingChunk: true,
           },
         },
       }
@@ -147,15 +58,105 @@ const nextConfig = {
 
     return config
   },
-  // Experimental features to handle ESM and modern syntax
-  experimental: {
-    esmExternals: 'loose',
-    optimizePackageImports: ['firebase', 'lucide-react'],
+
+  // Vercel-optimized security headers
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          // Content Security Policy - Updated for Vercel
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' *.stripe.com *.googleapis.com vercel.live",
+              "style-src 'self' 'unsafe-inline' fonts.googleapis.com",
+              "font-src 'self' fonts.gstatic.com",
+              "img-src 'self' data: blob: https: *.googleapis.com *.firebaseapp.com firebasestorage.googleapis.com",
+              "connect-src 'self' *.googleapis.com *.stripe.com wss://*.firebaseio.com *.firebaseio.com *.upstash.io vercel.live",
+              "frame-src 'self' *.stripe.com",
+              "object-src 'none'",
+              "base-uri 'self'",
+              "form-action 'self'",
+              "frame-ancestors 'none'",
+              "block-all-mixed-content",
+              "upgrade-insecure-requests",
+            ].join('; '),
+          },
+          // Security headers
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=31536000; includeSubDomains',
+          },
+          {
+            key: 'Permissions-Policy',
+            value: [
+              'camera=(self)',
+              'microphone=(self)',
+              'geolocation=()',
+              'payment=(self)',
+              'usb=()',
+              'magnetometer=()',
+              'accelerometer=()',
+              'gyroscope=()',
+            ].join(', '),
+          },
+        ],
+      },
+      // Cache static assets longer on Vercel
+      {
+        source: '/manifest.json',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        source: '/(.*).png',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+    ]
   },
-  // Improve build performance and reduce chunk loading issues
-  swcMinify: true,
+
+  // Enable compression
   compress: true,
-  poweredByHeader: false, // Remove X-Powered-By header for security
+  
+  // Optimize build output
+  swcMinify: true,
+  
+  // Remove powered by Next.js header
+  poweredByHeader: false,
+
+  // Vercel analytics support
+  ...(process.env.NODE_ENV === 'production' && {
+    analytics: {
+      id: process.env.VERCEL_ANALYTICS_ID,
+    },
+  }),
 }
 
 module.exports = nextConfig

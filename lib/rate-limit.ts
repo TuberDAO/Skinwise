@@ -1,14 +1,14 @@
 import { NextRequest } from 'next/server'
+import { Ratelimit } from '@upstash/ratelimit'
+import { Redis } from '@upstash/redis'
 
-interface RateLimitEntry {
-  count: number
-  resetTime: number
-}
+// Initialize Upstash Redis for Vercel serverless
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL!,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+})
 
-// In-memory storage for development (use Redis in production)
-const requestCounts = new Map<string, RateLimitEntry>()
-
-// Rate limit configurations for different endpoints
+// Rate limit configurations optimized for serverless
 export const RATE_LIMITS = {
   // Payment endpoints - very strict
   'payment': { requests: 3, windowMs: 60000 }, // 3 requests per minute
@@ -41,97 +41,134 @@ export interface RateLimitResult {
   retryAfter?: number
 }
 
+// Create rate limiters for each endpoint type
+const rateLimiters: Record<RateLimitType, Ratelimit> = {
+  payment: new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(3, '1 m'),
+    analytics: true,
+    prefix: 'skinwise:payment',
+  }),
+  checkout: new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(5, '5 m'),
+    analytics: true,
+    prefix: 'skinwise:checkout',
+  }),
+  email: new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(2, '1 m'),
+    analytics: true,
+    prefix: 'skinwise:email',
+  }),
+  'test-email': new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(1, '5 m'),
+    analytics: true,
+    prefix: 'skinwise:test-email',
+  }),
+  upload: new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(10, '1 m'),
+    analytics: true,
+    prefix: 'skinwise:upload',
+  }),
+  api: new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(30, '1 m'),
+    analytics: true,
+    prefix: 'skinwise:api',
+  }),
+  auth: new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(5, '5 m'),
+    analytics: true,
+    prefix: 'skinwise:auth',
+  }),
+  webhook: new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(100, '1 m'),
+    analytics: true,
+    prefix: 'skinwise:webhook',
+  }),
+}
+
 /**
- * Get client identifier from request
+ * Get client identifier from request (Vercel-optimized)
  */
 function getClientId(req: NextRequest): string {
-  // Try to get real IP from various headers (for proxy/load balancer setups)
+  // Vercel provides IP in different headers
   const forwarded = req.headers.get('x-forwarded-for')
   const realIp = req.headers.get('x-real-ip')
-  const cfConnectingIp = req.headers.get('cf-connecting-ip')
+  const cfIp = req.headers.get('cf-connecting-ip') // Cloudflare
+  const vercelIp = req.ip // Vercel's built-in IP
+
+  const ip = forwarded?.split(',')[0] || realIp || cfIp || vercelIp || 'anonymous'
   
-  const ip = forwarded?.split(',')[0]?.trim() || realIp || cfConnectingIp || req.ip || 'unknown'
-  
-  // For authenticated requests, you could also use user ID
-  // const userId = req.headers.get('x-user-id')
-  // return userId ? `user:${userId}` : `ip:${ip}`
-  
-  return `ip:${ip}`
+  // Clean IP address
+  return ip.trim()
 }
 
 /**
- * Clean up expired entries to prevent memory leaks
+ * Main rate limiting function using Upstash Redis
  */
-function cleanupExpiredEntries(): void {
-  const now = Date.now()
-  for (const [key, entry] of requestCounts.entries()) {
-    if (now > entry.resetTime) {
-      requestCounts.delete(key)
+export async function rateLimit(req: NextRequest, type: RateLimitType = 'api'): Promise<RateLimitResult> {
+  try {
+    const clientId = getClientId(req)
+    const ratelimiter = rateLimiters[type]
+    
+    if (!ratelimiter) {
+      console.error(`Rate limiter not found for type: ${type}`)
+      // Fail open for unknown types
+      return {
+        success: true,
+        limit: 1000,
+        remaining: 999,
+        resetTime: Date.now() + 60000,
+      }
     }
-  }
-}
 
-/**
- * Apply rate limiting to a request
- */
-export async function rateLimit(
-  req: NextRequest, 
-  type: RateLimitType = 'api'
-): Promise<RateLimitResult> {
-  const clientId = getClientId(req)
-  const config = RATE_LIMITS[type]
-  const now = Date.now()
-  const key = `${type}:${clientId}`
-  
-  // Clean up expired entries periodically
-  if (Math.random() < 0.01) { // 1% chance to cleanup
-    cleanupExpiredEntries()
-  }
-  
-  let entry = requestCounts.get(key)
-  
-  // Create new entry if doesn't exist or expired
-  if (!entry || now > entry.resetTime) {
-    entry = {
-      count: 0,
-      resetTime: now + config.windowMs
+    const { success, limit, remaining, reset } = await ratelimiter.limit(clientId)
+    
+    const result: RateLimitResult = {
+      success,
+      limit,
+      remaining,
+      resetTime: reset,
+      retryAfter: success ? undefined : Math.ceil((reset - Date.now()) / 1000),
     }
-  }
-  
-  // Check if limit exceeded
-  if (entry.count >= config.requests) {
-    const retryAfter = Math.ceil((entry.resetTime - now) / 1000)
+
+    // Log rate limit events for monitoring
+    if (!success) {
+      console.warn(`🚨 Rate limit exceeded for ${type}:`, {
+        clientId: clientId.substring(0, 8) + '...',
+        type,
+        limit,
+        remaining,
+        resetTime: new Date(reset).toISOString(),
+      })
+    }
+
+    return result
+  } catch (error) {
+    console.error('Rate limiting error:', error)
+    // Fail open on Redis errors to maintain availability
     return {
-      success: false,
-      limit: config.requests,
-      remaining: 0,
-      resetTime: entry.resetTime,
-      retryAfter
+      success: true,
+      limit: 1000,
+      remaining: 999,
+      resetTime: Date.now() + 60000,
     }
-  }
-  
-  // Increment counter and save
-  entry.count++
-  requestCounts.set(key, entry)
-  
-  return {
-    success: true,
-    limit: config.requests,
-    remaining: config.requests - entry.count,
-    resetTime: entry.resetTime
   }
 }
 
 /**
- * Middleware helper to add rate limit headers
+ * Add rate limit headers to response (Vercel-compatible)
  */
-export function addRateLimitHeaders(
-  headers: Headers, 
-  result: RateLimitResult
-): void {
+export function addRateLimitHeaders(headers: Headers, result: RateLimitResult): void {
   headers.set('X-RateLimit-Limit', result.limit.toString())
   headers.set('X-RateLimit-Remaining', result.remaining.toString())
-  headers.set('X-RateLimit-Reset', new Date(result.resetTime).toISOString())
+  headers.set('X-RateLimit-Reset', result.resetTime.toString())
   
   if (result.retryAfter) {
     headers.set('Retry-After', result.retryAfter.toString())
@@ -139,48 +176,45 @@ export function addRateLimitHeaders(
 }
 
 /**
- * Create a standardized rate limit error response
+ * Create standardized rate limit response
  */
 export function createRateLimitResponse(result: RateLimitResult): Response {
   const headers = new Headers({
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
+    'X-RateLimit-Limit': result.limit.toString(),
+    'X-RateLimit-Remaining': '0',
+    'X-RateLimit-Reset': result.resetTime.toString(),
   })
   
-  addRateLimitHeaders(headers, result)
-  
+  if (result.retryAfter) {
+    headers.set('Retry-After', result.retryAfter.toString())
+  }
+
   return new Response(
     JSON.stringify({
-      error: 'Too Many Requests',
-      message: `Rate limit exceeded. Try again in ${result.retryAfter} seconds.`,
-      retryAfter: result.retryAfter
+      error: 'Rate limit exceeded',
+      message: `Too many requests. Try again in ${result.retryAfter} seconds.`,
     }),
-    { 
-      status: 429,
-      headers
-    }
+    { status: 429, headers }
   )
 }
 
 /**
- * Security logging for rate limit violations
+ * Log rate limit violations for security monitoring
  */
-export function logRateLimitViolation(
-  req: NextRequest,
-  type: RateLimitType,
-  clientId: string
-): void {
-  const timestamp = new Date().toISOString()
-  const userAgent = req.headers.get('user-agent') || 'unknown'
-  const referer = req.headers.get('referer') || 'none'
-  
-  console.warn(`🚨 RATE LIMIT VIOLATION [${timestamp}]`, {
+export function logRateLimitViolation(req: NextRequest, type: RateLimitType, clientId: string): void {
+  const logData = {
+    event: 'rate_limit_violation',
     type,
-    clientId,
-    userAgent,
-    referer,
+    clientId: clientId.substring(0, 8) + '...',
+    userAgent: req.headers.get('user-agent'),
+    referer: req.headers.get('referer'),
+    timestamp: new Date().toISOString(),
     url: req.url,
-    method: req.method
-  })
+  }
   
-  // TODO: In production, send to monitoring service (Sentry, DataDog, etc.)
+  console.warn('🚨 Rate limit violation:', logData)
+  
+  // In production, you might want to send this to a monitoring service
+  // e.g., Sentry, LogRocket, or Vercel Analytics
 } 

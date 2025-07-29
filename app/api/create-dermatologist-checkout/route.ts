@@ -3,6 +3,10 @@ import { stripe } from '@/lib/stripe'
 import { convertDermatologistPrice, type SupportedCurrency } from '@/lib/currency'
 import { rateLimit, createRateLimitResponse, logRateLimitViolation } from '@/lib/rate-limit'
 
+// Vercel-specific: Configure runtime for optimal performance
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
 // Valid price ranges (in cents) for dermatologist consultations
 const VALID_DERMATOLOGIST_PRICES = {
   'USD': { min: 12000, max: 18000 }, // $120-180

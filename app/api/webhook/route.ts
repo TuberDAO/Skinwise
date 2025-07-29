@@ -8,6 +8,10 @@ import Stripe from 'stripe'
 
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!
 
+// Vercel-specific: Configure runtime for better performance
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
 export async function POST(req: NextRequest) {
   try {
     console.log('=== Stripe Webhook Called (SECURITY PROTECTED) ===')

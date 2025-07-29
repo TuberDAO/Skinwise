@@ -3,6 +3,10 @@ import { stripe } from '@/lib/stripe'
 import { convertPrice, type SupportedCurrency } from '@/lib/currency'
 import { rateLimit, createRateLimitResponse, logRateLimitViolation } from '@/lib/rate-limit'
 
+// Vercel-specific: Configure runtime for optimal performance
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
 // Valid price ranges (in cents) to prevent payment manipulation
 const VALID_ASSESSMENT_PRICES = {
   'USD': { min: 1500, max: 2500 }, // $15-25
