@@ -47,54 +47,77 @@ function validateAppointmentData(data: any): { valid: boolean; reason?: string }
     return { valid: false, reason: 'Appointment data is required' }
   }
 
-  const { date, time, patientName, patientEmail, appointmentType } = data
+  const { serviceType, date, time, patientName, patientEmail, appointmentType, submissionDate } = data
 
-  // Validate required fields
-  if (!date || typeof date !== 'string') {
-    return { valid: false, reason: 'Valid appointment date is required' }
+  // Check if this is a case review or appointment booking
+  if (serviceType === 'anonymous_case_review') {
+    // Validate case review data
+    if (!patientName || typeof patientName !== 'string' || patientName.trim().length < 1) {
+      return { valid: false, reason: 'Valid patient name is required' }
+    }
+
+    if (!patientEmail || typeof patientEmail !== 'string') {
+      return { valid: false, reason: 'Valid patient email is required' }
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(patientEmail)) {
+      return { valid: false, reason: 'Invalid email format' }
+    }
+
+    if (!submissionDate || typeof submissionDate !== 'string') {
+      return { valid: false, reason: 'Valid submission date is required' }
+    }
+
+    return { valid: true }
+  } else {
+    // Original appointment booking validation
+    if (!date || typeof date !== 'string') {
+      return { valid: false, reason: 'Valid appointment date is required' }
+    }
+
+    if (!time || typeof time !== 'string') {
+      return { valid: false, reason: 'Valid appointment time is required' }
+    }
+
+    if (!patientName || typeof patientName !== 'string' || patientName.trim().length < 2) {
+      return { valid: false, reason: 'Valid patient name is required' }
+    }
+
+    if (!patientEmail || typeof patientEmail !== 'string') {
+      return { valid: false, reason: 'Valid patient email is required' }
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(patientEmail)) {
+      return { valid: false, reason: 'Invalid email format' }
+    }
+
+    // Validate date format (YYYY-MM-DD)
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/
+    if (!dateRegex.test(date)) {
+      return { valid: false, reason: 'Invalid date format (YYYY-MM-DD required)' }
+    }
+
+    // Validate time format (HH:MM)
+    const timeRegex = /^\d{2}:\d{2}$/
+    if (!timeRegex.test(time)) {
+      return { valid: false, reason: 'Invalid time format (HH:MM required)' }
+    }
+
+    // Validate appointment is in the future
+    const appointmentDateTime = new Date(`${date}T${time}`)
+    if (appointmentDateTime <= new Date()) {
+      return { valid: false, reason: 'Appointment must be in the future' }
+    }
+
+    // Validate appointment type if provided
+    if (appointmentType && appointmentType !== 'dermatologist_consultation') {
+      return { valid: false, reason: 'Invalid appointment type' }
+    }
+
+    return { valid: true }
   }
-
-  if (!time || typeof time !== 'string') {
-    return { valid: false, reason: 'Valid appointment time is required' }
-  }
-
-  if (!patientName || typeof patientName !== 'string' || patientName.trim().length < 2) {
-    return { valid: false, reason: 'Valid patient name is required' }
-  }
-
-  if (!patientEmail || typeof patientEmail !== 'string') {
-    return { valid: false, reason: 'Valid patient email is required' }
-  }
-
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  if (!emailRegex.test(patientEmail)) {
-    return { valid: false, reason: 'Invalid email format' }
-  }
-
-  // Validate date format (YYYY-MM-DD)
-  const dateRegex = /^\d{4}-\d{2}-\d{2}$/
-  if (!dateRegex.test(date)) {
-    return { valid: false, reason: 'Invalid date format (YYYY-MM-DD required)' }
-  }
-
-  // Validate time format (HH:MM)
-  const timeRegex = /^\d{2}:\d{2}$/
-  if (!timeRegex.test(time)) {
-    return { valid: false, reason: 'Invalid time format (HH:MM required)' }
-  }
-
-  // Validate appointment is in the future
-  const appointmentDateTime = new Date(`${date}T${time}`)
-  if (appointmentDateTime <= new Date()) {
-    return { valid: false, reason: 'Appointment must be in the future' }
-  }
-
-  // Validate appointment type if provided
-  if (appointmentType && appointmentType !== 'dermatologist_consultation') {
-    return { valid: false, reason: 'Invalid appointment type' }
-  }
-
-  return { valid: true }
 }
 
 export async function POST(req: NextRequest) {

@@ -5,41 +5,18 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Calendar, Clock, User, CreditCard, ArrowLeft, Shield, CheckCircle } from "lucide-react"
+import { ArrowLeft, Shield, CheckCircle, User, CreditCard, FileText, Clock, Mail } from "lucide-react"
 import Link from "next/link"
 import { detectUserCurrency, formatDermatologistPrice } from '@/lib/currency'
 import { stripePromise } from '@/lib/stripe'
+import { useAuth } from '@/components/providers/auth-provider'
 
-export default function BookDermatologistPage() {
-  const [selectedDate, setSelectedDate] = useState('')
-  const [selectedTime, setSelectedTime] = useState('')
-  const [patientName, setPatientName] = useState('')
-  const [patientEmail, setPatientEmail] = useState('')
-  const [phoneNumber, setPhoneNumber] = useState('')
+export default function DermatologistReviewPage() {
+  const { user } = useAuth()
+  const [additionalInfo, setAdditionalInfo] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [userCurrency, setUserCurrency] = useState<'USD' | 'CHF' | 'EUR' | 'GBP' | 'CAD' | 'AUD' | 'JPY' | 'SEK' | 'NOK' | 'DKK'>('USD')
   const [currencyLoading, setCurrencyLoading] = useState(true)
-
-  // Available time slots
-  const timeSlots = [
-    '09:00', '09:30', '10:00', '10:30', '11:00', '11:30', 
-    '13:00', '13:30', '14:00', '14:30', '15:00', '15:30',
-    '16:00', '16:30', '17:00', '17:30'
-  ]
-
-  // Get minimum date (tomorrow)
-  const getMinDate = () => {
-    const tomorrow = new Date()
-    tomorrow.setDate(tomorrow.getDate() + 1)
-    return tomorrow.toISOString().split('T')[0]
-  }
-
-  // Get maximum date (3 months from now)
-  const getMaxDate = () => {
-    const maxDate = new Date()
-    maxDate.setMonth(maxDate.getMonth() + 3)
-    return maxDate.toISOString().split('T')[0]
-  }
 
   // Load user currency
   useEffect(() => {
@@ -61,15 +38,15 @@ export default function BookDermatologistPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!selectedDate || !selectedTime || !patientName || !patientEmail) {
-      alert('Please fill in all required fields')
+    if (!user?.email) {
+      alert('Please log in to continue')
       return
     }
 
     setIsLoading(true)
 
     try {
-      // Create checkout session for dermatologist appointment
+      // Create checkout session for dermatologist case review
       const response = await fetch('/api/create-dermatologist-checkout', {
         method: 'POST',
         headers: {
@@ -77,15 +54,13 @@ export default function BookDermatologistPage() {
         },
         body: JSON.stringify({
           appointmentData: {
-            date: selectedDate,
-            time: selectedTime,
-            patientName,
-            patientEmail,
-            phoneNumber,
-            appointmentType: 'dermatologist_consultation',
-            duration: 15
+            patientName: user.email?.split('@')[0] || 'User', // Use email prefix as name
+            patientEmail: user.email,
+            additionalInfo,
+            serviceType: 'anonymous_case_review',
+            submissionDate: new Date().toISOString(),
           },
-          userEmail: patientEmail,
+          userEmail: user.email,
           currency: userCurrency
         })
       })
@@ -114,8 +89,8 @@ export default function BookDermatologistPage() {
       }
 
     } catch (error) {
-      console.error('Error creating appointment:', error)
-      alert('Failed to create appointment. Please try again.')
+      console.error('Error creating case review request:', error)
+      alert('Failed to process request. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -135,7 +110,7 @@ export default function BookDermatologistPage() {
               />
               <div className="hidden sm:block">
                 <h1 className="text-xl font-bold text-gray-900">SkinWise</h1>
-                <p className="text-sm text-gray-500">Dermatologist Booking</p>
+                <p className="text-sm text-gray-500">Dermatologist Review</p>
               </div>
             </Link>
             
@@ -153,12 +128,40 @@ export default function BookDermatologistPage() {
         {/* Page Header */}
         <div className="text-center mb-8 lg:mb-12">
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-            Book Your Dermatologist Consultation
+            Request a Dermatologist Review
           </h1>
-          <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto">
-            Schedule a 15-minute online consultation with a board-certified dermatologist
+          <p className="text-base sm:text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            A certified dermatologist will examine your preliminary report, photos and case details. 
+            No live call required — just expert answers within 48-72 hours.
           </p>
         </div>
+
+        {/* What You Get Section */}
+        <Card className="mb-8 bg-gradient-to-r from-green-50 to-teal-50 border-2 border-green-200">
+          <CardContent className="p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">What You Get</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+              <div className="flex flex-col items-center space-y-2">
+                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                  <User className="h-6 w-6 text-green-600" />
+                </div>
+                <p className="text-sm font-medium text-gray-900">Personal case examination by a certified dermatologist</p>
+              </div>
+              <div className="flex flex-col items-center space-y-2">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                  <FileText className="h-6 w-6 text-blue-600" />
+                </div>
+                <p className="text-sm font-medium text-gray-900">Detailed written response</p>
+              </div>
+              <div className="flex flex-col items-center space-y-2">
+                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                  <Shield className="h-6 w-6 text-purple-600" />
+                </div>
+                <p className="text-sm font-medium text-gray-900">Private and secure — no ID or video call needed</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Pricing Card */}
         <Card className="mb-8 bg-gradient-to-r from-blue-50 to-teal-50 border-2 border-blue-200">
@@ -166,16 +169,20 @@ export default function BookDermatologistPage() {
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="text-center sm:text-left">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  15-Minute Online Consultation
+                  Anonymous Case Review
                 </h3>
                 <div className="flex items-center justify-center sm:justify-start space-x-4 text-sm text-gray-600">
+                  <div className="flex items-center">
+                    <Clock className="h-4 w-4 mr-1 text-green-600" />
+                    <span>48-72 hours</span>
+                  </div>
                   <div className="flex items-center">
                     <Shield className="h-4 w-4 mr-1 text-green-600" />
                     <span>Board-certified</span>
                   </div>
                   <div className="flex items-center">
                     <CheckCircle className="h-4 w-4 mr-1 text-green-600" />
-                    <span>Secure & Private</span>
+                    <span>Completely private</span>
                   </div>
                 </div>
               </div>
@@ -189,117 +196,51 @@ export default function BookDermatologistPage() {
           </CardContent>
         </Card>
 
-        {/* Booking Form */}
+        {/* Review Form */}
         <Card className="shadow-lg">
           <CardHeader className="bg-white border-b">
             <CardTitle className="text-xl font-semibold text-gray-900">
-              Appointment Details
+              Additional Information (Optional)
             </CardTitle>
+            <p className="text-sm text-gray-600 mt-2">
+              Any extra context that might help with the dermatologist's review of your case.
+            </p>
           </CardHeader>
           <CardContent className="p-6">
             <form onSubmit={handleSubmit} className="space-y-6">
               
-              {/* Patient Information */}
+              {/* Additional Information */}
               <div className="space-y-4">
-                <h3 className="text-lg font-medium text-gray-900">Patient Information</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="patientName" className="text-sm font-medium text-gray-700">
-                      Full Name *
-                    </Label>
-                    <Input
-                      id="patientName"
-                      type="text"
-                      value={patientName}
-                      onChange={(e) => setPatientName(e.target.value)}
-                      className="mt-1"
-                      placeholder="Enter your full name"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="patientEmail" className="text-sm font-medium text-gray-700">
-                      Email Address *
-                    </Label>
-                    <Input
-                      id="patientEmail"
-                      type="email"
-                      value={patientEmail}
-                      onChange={(e) => setPatientEmail(e.target.value)}
-                      className="mt-1"
-                      placeholder="Enter your email"
-                      required
-                    />
-                  </div>
-                </div>
-                <div className="md:max-w-md">
-                  <Label htmlFor="phoneNumber" className="text-sm font-medium text-gray-700">
-                    Phone Number (Optional)
+                <div>
+                  <Label htmlFor="additionalInfo" className="text-sm font-medium text-gray-700">
+                    Additional Details
                   </Label>
-                  <Input
-                    id="phoneNumber"
-                    type="tel"
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    className="mt-1"
-                    placeholder="Your phone number"
+                  <textarea
+                    id="additionalInfo"
+                    value={additionalInfo}
+                    onChange={(e) => setAdditionalInfo(e.target.value)}
+                    rows={4}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
+                    placeholder="Any additional details about your skin concern, symptoms, or questions you'd like the dermatologist to address..."
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Optional: Any extra context that might help with the review
+                  </p>
                 </div>
               </div>
 
-              {/* Date & Time Selection */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium text-gray-900">Select Date & Time</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="appointmentDate" className="text-sm font-medium text-gray-700">
-                      Appointment Date *
-                    </Label>
-                    <Input
-                      id="appointmentDate"
-                      type="date"
-                      value={selectedDate}
-                      onChange={(e) => setSelectedDate(e.target.value)}
-                      min={getMinDate()}
-                      max={getMaxDate()}
-                      className="mt-1"
-                      required
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Bookings start from tomorrow
-                    </p>
-                  </div>
-                  <div>
-                    <Label htmlFor="appointmentTime" className="text-sm font-medium text-gray-700">
-                      Appointment Time *
-                    </Label>
-                    <select
-                      id="appointmentTime"
-                      value={selectedTime}
-                      onChange={(e) => setSelectedTime(e.target.value)}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
-                      required
-                    >
-                      <option value="">Select time</option>
-                      {timeSlots.map(time => (
-                        <option key={time} value={time}>{time}</option>
-                      ))}
-                    </select>
-                    <p className="text-xs text-gray-500 mt-1">
-                      All times are in your local timezone
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Important Note */}
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                <h4 className="font-medium text-amber-800 mb-2">Important Information</h4>
-                <ul className="text-sm text-amber-700 space-y-1">
-                  <li>• You'll receive a video call link via email after payment</li>
-                  <li>• The consultation will be conducted via secure video call</li>
-                  <li>• Please have good lighting and a stable internet connection</li>
-                  <li>• If you need to reschedule, contact us at least 24 hours in advance</li>
+              {/* Process Information */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 className="font-medium text-blue-800 mb-2 flex items-center">
+                  <Mail className="h-4 w-4 mr-2" />
+                  How It Works
+                </h4>
+                <ul className="text-sm text-blue-700 space-y-1">
+                  <li>• After payment, you'll receive an email confirmation with your reference number</li>
+                  <li>• A certified dermatologist will review your preliminary report and photos</li>
+                  <li>• You'll receive a detailed written response within 48-72 hours</li>
+                  <li>• The dermatologist may ask follow-up questions via email if needed</li>
+                  <li>• All communication is private and secure - no personal ID required</li>
                 </ul>
               </div>
 
@@ -307,7 +248,7 @@ export default function BookDermatologistPage() {
               <div className="pt-4">
                 <Button
                   type="submit"
-                  disabled={isLoading || !selectedDate || !selectedTime || !patientName || !patientEmail}
+                  disabled={isLoading || !user?.email}
                   className="w-full bg-teal-700 hover:bg-teal-800 text-white py-3 text-lg font-medium shadow-lg"
                 >
                   {isLoading ? (
@@ -323,7 +264,7 @@ export default function BookDermatologistPage() {
                   )}
                 </Button>
                 <p className="text-xs text-gray-500 text-center mt-2">
-                  You'll be redirected to our secure payment processor
+                  You'll receive an email confirmation with your reference number and next steps.
                 </p>
               </div>
             </form>
@@ -343,11 +284,29 @@ export default function BookDermatologistPage() {
             </div>
             <div className="flex items-center">
               <User className="h-4 w-4 mr-2 text-green-600" />
-              <span>Board-Certified Doctors</span>
+              <span>Board-Certified Dermatologists</span>
+            </div>
+            <div className="flex items-center">
+              <Mail className="h-4 w-4 mr-2 text-green-600" />
+              <span>Anonymous & Private</span>
             </div>
           </div>
         </div>
+
+        {/* Privacy Notice */}
+        <Card className="mt-8 bg-gray-50 border-gray-200">
+          <CardContent className="p-6">
+            <div className="text-center">
+              <h4 className="font-medium text-gray-900 mb-2">🔒 Your Privacy & Security</h4>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                Your case review is completely anonymous. No personal identifying details are required. 
+                All communications are encrypted and secure. The dermatologist will only see your photos, 
+                preliminary report, and any additional information you provide.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+              </div>
       </div>
-    </div>
-  )
-} 
+    )
+  } 
