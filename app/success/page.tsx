@@ -167,7 +167,7 @@ export default function SuccessPage() {
                       <strong>A downloadable PDF in plain English</strong> of the preliminary assessment & a referral letter for your dermatologist.
                     </p>
                     <p>
-                      <strong>A link to optionally book</strong> a board-certified dermatologist online.
+                      <strong>Option to submit your case anonymously</strong> for detailed examination by a Certified Dermatologist.
                     </p>
                   </div>
                 </div>
@@ -210,14 +210,14 @@ export default function SuccessPage() {
                       className="w-full h-14 text-lg font-medium bg-brand-blue hover:bg-brand-blue/90 text-white transition-all"
                     >
                       <Calendar className="w-5 h-5 mr-3" />
-                      🩺 Schedule an Online Dermatologist Appointment
+                      Get a detailed examination from a certified dermatologist.
                     </Button>
                   </Link>
                 </div>
                 
                 {/* Optional note under Schedule button */}
                 <p className="text-center text-sm text-slate-600 max-w-2xl mx-auto">
-                  <em>Optional – we can also help after your report is delivered or you can book an appointment now.</em>
+                  <em>We can also arrange an anonymous examination of your case after your preliminary report is delivered.</em>
                 </p>
               </div>
 
