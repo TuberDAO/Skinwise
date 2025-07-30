@@ -8,7 +8,8 @@ export default function PrivacyPage() {
   
   useEffect(() => {
     // Redirect to the unified terms page since privacy policy is included there
-    router.push('/terms')
+    // Use replace() to avoid creating a history entry that breaks back button
+    router.replace('/terms')
   }, [router])
 
   return (

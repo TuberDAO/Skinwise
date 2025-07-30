@@ -1,6 +1,7 @@
 import Link from "next/link"
-import { Heart, ArrowLeft } from "lucide-react"
+import { Heart } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { BackButton } from "@/components/ui/back-button"
 
 export default function TermsPage() {
   return (
@@ -15,10 +16,9 @@ export default function TermsPage() {
           />
         </Link>
         <div className="ml-auto">
-          <Link href="/" className="flex items-center text-sm text-slate-600 hover:text-brand-blue">
-            <ArrowLeft className="w-4 h-4 mr-1" />
+          <BackButton className="text-sm text-slate-600 hover:text-brand-blue">
             Back to Home
-          </Link>
+          </BackButton>
         </div>
       </header>
 

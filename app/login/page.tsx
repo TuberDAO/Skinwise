@@ -4,13 +4,14 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { signInWithGoogle } from '@/firebase'
+import { signInWithGoogle, validateProductionConfig } from '@/firebase'
 import { useAuth } from '@/components/providers/auth-provider'
 import { Heart, Shield } from "lucide-react"
 import Link from "next/link"
 
 export default function LoginPage() {
   const [loading, setLoading] = useState<'google' | null>(null)
+  const [error, setError] = useState<string | null>(null)
   const { user } = useAuth()
   const router = useRouter()
 
@@ -19,15 +20,22 @@ export default function LoginPage() {
     if (user) {
       router.push('/upload')
     }
+    
+    // Validate production configuration on login page load
+    if (process.env.NODE_ENV === 'production') {
+      validateProductionConfig()
+    }
   }, [user, router])
 
   const handleGoogleSignIn = async () => {
     try {
       setLoading('google')
+      setError(null) // Clear any previous errors
       await signInWithGoogle()
       router.push('/upload')
-    } catch (error) {
+    } catch (error: any) {
       console.error('Google sign-in error:', error)
+      setError(error.message || 'Sign-in failed. Please try again.')
       setLoading(null)
     }
   }
@@ -67,6 +75,12 @@ export default function LoginPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3 sm:space-y-4">
+              {error && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+                  <p className="text-sm text-red-700 text-center">{error}</p>
+                </div>
+              )}
+              
               <Button
                 onClick={handleGoogleSignIn}
                 disabled={loading !== null}

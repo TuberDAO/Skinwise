@@ -159,12 +159,12 @@ export default function LandingPage() {
       <section className="bg-gradient-to-br from-slate-50 via-white to-teal-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
           <div className="text-center space-y-6 sm:space-y-8">
-            {/* How to Use Graphic */}
-            <div className="w-full max-w-sm sm:max-w-md lg:max-w-4xl xl:max-w-6xl mx-auto">
+            {/* How to Use Graphic - Enhanced Mobile Hero */}
+            <div className="w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-0">
               <img 
                 src="/how-to-use-skinwise.png" 
                 alt="How to use SkinWise - Take a photo, Send securely, AI-assisted results in 24 hours" 
-                className="w-full h-auto object-contain max-h-20 sm:max-h-24 md:max-h-32 lg:max-h-40 xl:max-h-48"
+                className="w-full h-auto object-contain max-h-48 sm:max-h-56 md:max-h-64 lg:max-h-80 xl:max-h-96 drop-shadow-lg"
               />
             </div>
 
