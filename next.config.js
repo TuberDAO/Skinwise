@@ -70,7 +70,7 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline' *.stripe.com *.googleapis.com vercel.live",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' *.stripe.com *.googleapis.com apis.google.com vercel.live",
               "style-src 'self' 'unsafe-inline' fonts.googleapis.com",
               "font-src 'self' fonts.gstatic.com",
               "img-src 'self' data: blob: https: *.googleapis.com *.firebaseapp.com firebasestorage.googleapis.com",
