@@ -166,6 +166,7 @@ export async function POST(req: NextRequest) {
       // Enhanced metadata for security and tracking
       metadata: {
         userId,
+        referenceId: assessmentData.id, // Use the actual document ID from the user's submission
         assessmentId: `assessment_${Date.now()}`,
         originalCurrency: currency,
         originalAmount: priceInfo.amount.toString(),

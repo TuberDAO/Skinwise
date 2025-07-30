@@ -74,6 +74,19 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Invalid session data' }, { status: 400 })
           }
 
+          // Extract referenceId from session metadata
+          const referenceId = session.metadata?.referenceId
+          if (!referenceId) {
+            console.error('🚨 CRITICAL: Missing referenceId in session metadata:', {
+              sessionId: session.id,
+              metadata: session.metadata,
+              eventId: event.id
+            })
+            return NextResponse.json({ error: 'Missing referenceId in session metadata' }, { status: 400 })
+          }
+
+          console.log('📋 Processing payment with referenceId:', referenceId)
+
           // Check if firestore is initialized
           if (!firestore) {
             console.error('🚨 Firestore not initialized for webhook processing')
@@ -84,26 +97,16 @@ export async function POST(req: NextRequest) {
           const appointmentType = session.metadata?.appointmentType
           
           if (appointmentType === 'dermatologist_consultation') {
-            console.log('📋 Processing dermatologist appointment payment:', session.id)
+            console.log('📋 Processing dermatologist appointment payment with referenceId:', referenceId)
             
-            // Handle dermatologist appointment payment
-            const appointmentsRef = collection(firestore, 'appointments')
-            const q = query(appointmentsRef, where('stripeSessionId', '==', session.id))
-            const querySnapshot = await getDocs(q)
-            
-            if (!querySnapshot.empty) {
-              const appointmentDoc = querySnapshot.docs[0]
-              const appointmentData = appointmentDoc.data()
+            // Handle dermatologist appointment payment - use referenceId
+            try {
+              const appointmentDocRef = doc(firestore, 'appointments', referenceId)
               
-              // Security: Validate appointment data before processing
-              if (!appointmentData.patientEmail || !appointmentData.patientName) {
-                console.warn('🚨 Invalid appointment data for webhook:', appointmentDoc.id)
-                return NextResponse.json({ error: 'Invalid appointment data' }, { status: 400 })
-              }
-              
-              await updateDoc(appointmentDoc.ref, {
+              await updateDoc(appointmentDocRef, {
                 status: 'paid',
                 paymentStatus: 'completed',
+                stripeSessionId: session.id,
                 stripePaymentIntentId: session.payment_intent,
                 paidAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
@@ -114,55 +117,59 @@ export async function POST(req: NextRequest) {
                 webhookEventId: event.id
               })
               
-              console.log('✅ Appointment payment confirmed:', appointmentDoc.id)
+              console.log('✅ Appointment payment confirmed for referenceId:', referenceId)
               
-              // Send appointment confirmation email with error handling
-              try {
-                const emailResult = await sendAppointmentConfirmation({
-                  customerEmail: appointmentData.patientEmail,
-                  patientName: appointmentData.patientName,
-                  appointmentDate: appointmentData.date,
-                  appointmentTime: appointmentData.time,
-                  sessionId: session.id,
-                  currency: session.currency?.toUpperCase() || 'GBP',
-                  amount: (session.amount_total || 0) / 100,
-                  bookingDate: new Date().toLocaleDateString()
-                })
+              // Get appointment data for email confirmation
+              const appointmentDoc = await appointmentDocRef.get()
+              if (appointmentDoc.exists()) {
+                const appointmentData = appointmentDoc.data()
                 
-                if (emailResult.success) {
-                  console.log('✅ Appointment confirmation email sent:', emailResult.messageId)
+                // Security: Validate appointment data before processing
+                if (!appointmentData.patientEmail || !appointmentData.patientName) {
+                  console.warn('🚨 Invalid appointment data for webhook:', referenceId)
                 } else {
-                  console.error('❌ Failed to send appointment confirmation email:', emailResult.error)
-                  // Don't fail webhook for email failures
+                  // Send appointment confirmation email with error handling
+                  try {
+                    const emailResult = await sendAppointmentConfirmation({
+                      customerEmail: appointmentData.patientEmail,
+                      patientName: appointmentData.patientName,
+                      appointmentDate: appointmentData.date,
+                      appointmentTime: appointmentData.time,
+                      sessionId: session.id,
+                      currency: session.currency?.toUpperCase() || 'GBP',
+                      amount: (session.amount_total || 0) / 100,
+                      bookingDate: new Date().toLocaleDateString()
+                    })
+                    
+                    if (emailResult.success) {
+                      console.log('✅ Appointment confirmation email sent:', emailResult.messageId)
+                    } else {
+                      console.error('❌ Failed to send appointment confirmation email:', emailResult.error)
+                    }
+                  } catch (emailError) {
+                    console.error('❌ Error sending appointment confirmation email:', emailError)
+                  }
                 }
-              } catch (emailError) {
-                console.error('❌ Error sending appointment confirmation email:', emailError)
-                // Don't fail webhook for email failures
               }
-            } else {
-              console.error('🚨 Appointment not found for session:', session.id)
-              // Don't fail webhook - log for investigation
+            } catch (appointmentError) {
+              console.error('❌ Failed to update appointment document:', {
+                referenceId,
+                sessionId: session.id,
+                error: appointmentError instanceof Error ? appointmentError.message : 'Unknown error',
+                eventId: event.id
+              })
+              throw appointmentError
             }
           } else {
-            console.log('📋 Processing assessment payment:', session.id)
+            console.log('📋 Processing assessment payment with referenceId:', referenceId)
             
-            // Handle assessment payment (default behavior)
-            const assessmentsRef = collection(firestore, 'assessments')
-            const q = query(assessmentsRef, where('stripeSessionId', '==', session.id))
-            const querySnapshot = await getDocs(q)
-            
-            if (!querySnapshot.empty) {
-              const assessmentDoc = querySnapshot.docs[0]
-              const assessmentData = assessmentDoc.data()
+            // Handle assessment payment - use referenceId to find document in assessments collection
+            try {
+              const assessmentDocRef = doc(firestore, 'assessments', referenceId)
               
-              // Security: Validate assessment data before processing
-              if (!assessmentData.email) {
-                console.warn('🚨 Invalid assessment data for webhook:', assessmentDoc.id)
-                return NextResponse.json({ error: 'Invalid assessment data' }, { status: 400 })
-              }
-              
-              await updateDoc(assessmentDoc.ref, {
+              await updateDoc(assessmentDocRef, {
                 status: 'paid',
+                stripeSessionId: session.id,
                 stripePaymentIntentId: session.payment_intent,
                 paidAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
@@ -173,32 +180,49 @@ export async function POST(req: NextRequest) {
                 webhookEventId: event.id
               })
               
-              console.log('✅ Assessment payment confirmed:', assessmentDoc.id)
+              console.log('✅ Assessment payment confirmed for referenceId:', referenceId)
               
-              // Send assessment confirmation email with error handling
-              try {
-                const emailResult = await sendAssessmentConfirmation({
-                  customerEmail: assessmentData.email,
-                  customerName: undefined, // Could extract from user data if available
-                  sessionId: session.id,
-                  currency: session.currency?.toUpperCase() || 'GBP',
-                  amount: (session.amount_total || 0) / 100,
-                  submissionDate: new Date().toLocaleDateString()
-                })
+              // Get assessment data for email confirmation
+              const assessmentDoc = await assessmentDocRef.get()
+              if (assessmentDoc.exists()) {
+                const assessmentData = assessmentDoc.data()
                 
-                if (emailResult.success) {
-                  console.log('✅ Assessment confirmation email sent:', emailResult.messageId)
+                // Security: Validate assessment data before processing
+                if (!assessmentData.email) {
+                  console.warn('🚨 Invalid assessment data for webhook:', referenceId)
                 } else {
-                  console.error('❌ Failed to send assessment confirmation email:', emailResult.error)
-                  // Don't fail webhook for email failures
+                  // Send assessment confirmation email with error handling
+                  try {
+                    const emailResult = await sendAssessmentConfirmation({
+                      customerEmail: assessmentData.email,
+                      customerName: undefined, // Could extract from user data if available
+                      sessionId: session.id,
+                      currency: session.currency?.toUpperCase() || 'GBP',
+                      amount: (session.amount_total || 0) / 100,
+                      submissionDate: new Date().toLocaleDateString()
+                    })
+                    
+                    if (emailResult.success) {
+                      console.log('✅ Assessment confirmation email sent:', emailResult.messageId)
+                    } else {
+                      console.error('❌ Failed to send assessment confirmation email:', emailResult.error)
+                    }
+                  } catch (emailError) {
+                    console.error('❌ Error sending assessment confirmation email:', emailError)
+                  }
                 }
-              } catch (emailError) {
-                console.error('❌ Error sending assessment confirmation email:', emailError)
-                // Don't fail webhook for email failures
+              } else {
+                console.error('🚨 Assessment document not found for referenceId:', referenceId)
+                throw new Error(`Assessment document not found: ${referenceId}`)
               }
-            } else {
-              console.error('🚨 Assessment not found for session:', session.id)
-              // Don't fail webhook - log for investigation
+            } catch (assessmentError) {
+              console.error('❌ Failed to update assessment document:', {
+                referenceId,
+                sessionId: session.id,
+                error: assessmentError instanceof Error ? assessmentError.message : 'Unknown error',
+                eventId: event.id
+              })
+              throw assessmentError
             }
           }
         } catch (error) {

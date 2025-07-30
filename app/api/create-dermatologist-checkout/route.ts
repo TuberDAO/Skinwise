@@ -188,6 +188,9 @@ export async function POST(req: NextRequest) {
 
     console.log('✅ Consultation validation passed - creating Stripe session')
 
+    // Generate appointment ID for reference
+    const appointmentId = `appointment_${Date.now()}_${patientEmail.replace('@', '_').replace('.', '_')}`
+
     // Create Stripe checkout session with enhanced security
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -216,6 +219,7 @@ export async function POST(req: NextRequest) {
       // Enhanced metadata for security and tracking
       metadata: {
         appointmentType: 'dermatologist_consultation',
+        referenceId: appointmentId, // Add referenceId for webhook processing
         patientName: patientName.substring(0, 100), // Limit length
         patientEmail,
         appointmentDate: date,
@@ -252,8 +256,6 @@ export async function POST(req: NextRequest) {
       const { firestore } = await import('@/firebase')
       
       if (firestore) {
-        const appointmentId = `appointment_${Date.now()}_${patientEmail.replace('@', '_').replace('.', '_')}`
-        
         // Sanitize and prepare data for storage
         const sanitizedData = {
           ...appointmentData,
