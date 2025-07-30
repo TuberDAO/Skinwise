@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
-import { doc, updateDoc, query, where, collection, getDocs } from 'firebase/firestore'
+import { doc, updateDoc, query, where, collection, getDocs, getDoc } from 'firebase/firestore'
 import { firestore } from '@/firebase'
 import { sendAssessmentConfirmation, sendAppointmentConfirmation } from '@/lib/email'
 import { rateLimit, createRateLimitResponse, logRateLimitViolation } from '@/lib/rate-limit'
@@ -120,7 +120,7 @@ export async function POST(req: NextRequest) {
               console.log('✅ Appointment payment confirmed for referenceId:', referenceId)
               
               // Get appointment data for email confirmation
-              const appointmentDoc = await appointmentDocRef.get()
+              const appointmentDoc = await getDoc(appointmentDocRef)
               if (appointmentDoc.exists()) {
                 const appointmentData = appointmentDoc.data()
                 
@@ -183,7 +183,7 @@ export async function POST(req: NextRequest) {
               console.log('✅ Assessment payment confirmed for referenceId:', referenceId)
               
               // Get assessment data for email confirmation
-              const assessmentDoc = await assessmentDocRef.get()
+              const assessmentDoc = await getDoc(assessmentDocRef)
               if (assessmentDoc.exists()) {
                 const assessmentData = assessmentDoc.data()
                 
