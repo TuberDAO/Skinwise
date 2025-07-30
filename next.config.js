@@ -75,7 +75,7 @@ const nextConfig = {
               "font-src 'self' fonts.gstatic.com",
               "img-src 'self' data: blob: https: *.googleapis.com *.firebaseapp.com firebasestorage.googleapis.com",
               "connect-src 'self' *.googleapis.com *.stripe.com wss://*.firebaseio.com *.firebaseio.com *.upstash.io vercel.live",
-              "frame-src 'self' *.stripe.com",
+              "frame-src 'self' *.stripe.com *.firebaseapp.com",
               "object-src 'none'",
               "base-uri 'self'",
               "form-action 'self'",
