@@ -17,7 +17,7 @@ export type SupportedCurrency = keyof typeof SUPPORTED_CURRENCIES
 export const BASE_PRICE_USD = 19.95
 export const DERMATOLOGIST_PRICE_GBP = 110.00
 
-// Simplified currency detection - avoiding CORS issues and making it consistent
+// IP-based currency detection with browser locale fallback
 export const detectUserCurrency = async (): Promise<SupportedCurrency> => {
   try {
     // Check if we already detected currency in this session
@@ -29,32 +29,123 @@ export const detectUserCurrency = async (): Promise<SupportedCurrency> => {
       }
     }
 
-    // Use browser locale for currency detection (only once per session)
-    const locale = (navigator.language || 'en-US').toLowerCase()
     let detectedCurrency: SupportedCurrency = 'USD' // Default
-    
-    if (locale.includes('gb') || locale.includes('uk')) {
-      detectedCurrency = 'GBP'
-    } else if (locale.includes('au')) {
-      detectedCurrency = 'AUD'
-    } else if (locale.includes('ca')) {
-      detectedCurrency = 'CAD'
-    } else if (locale.includes('eu') || locale.includes('de') || locale.includes('fr') || locale.includes('es') || locale.includes('it')) {
-      detectedCurrency = 'EUR'
-    } else if (locale.includes('jp')) {
-      detectedCurrency = 'JPY'
+
+    // Try IP-based geolocation first (more accurate for VPN users)
+    try {
+      // Use a free, reliable IP geolocation service
+      const response = await fetch('https://ipapi.co/json/', {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+        }
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        const countryCode = data.country_code?.toUpperCase()
+        
+        console.log('IP geolocation detected country:', countryCode)
+        
+        // Map country codes to currencies
+        switch (countryCode) {
+          case 'GB':
+          case 'UK':
+            detectedCurrency = 'GBP'
+            break
+          case 'US':
+            detectedCurrency = 'USD'
+            break
+          case 'CA':
+            detectedCurrency = 'CAD'
+            break
+          case 'AU':
+            detectedCurrency = 'AUD'
+            break
+          case 'JP':
+            detectedCurrency = 'JPY'
+            break
+          case 'CH':
+            detectedCurrency = 'CHF'
+            break
+          case 'SE':
+            detectedCurrency = 'SEK'
+            break
+          case 'NO':
+            detectedCurrency = 'NOK'
+            break
+          case 'DK':
+            detectedCurrency = 'DKK'
+            break
+          // EU countries
+          case 'DE':
+          case 'FR':
+          case 'ES':
+          case 'IT':
+          case 'NL':
+          case 'BE':
+          case 'AT':
+          case 'PT':
+          case 'IE':
+          case 'FI':
+          case 'LU':
+          case 'MT':
+          case 'CY':
+          case 'SK':
+          case 'SI':
+          case 'EE':
+          case 'LV':
+          case 'LT':
+            detectedCurrency = 'EUR'
+            break
+          default:
+            // Keep USD as default for other countries
+            detectedCurrency = 'USD'
+        }
+        
+        console.log('Currency detected from IP geolocation:', detectedCurrency)
+      } else {
+        throw new Error('Geolocation API failed')
+      }
+    } catch (geoError) {
+      console.warn('IP geolocation failed, falling back to browser locale:', geoError)
+      
+      // Fallback to browser locale detection
+      const locale = (navigator.language || 'en-US').toLowerCase()
+      
+      if (locale.includes('gb') || locale.includes('uk')) {
+        detectedCurrency = 'GBP'
+      } else if (locale.includes('au')) {
+        detectedCurrency = 'AUD'
+      } else if (locale.includes('ca')) {
+        detectedCurrency = 'CAD'
+      } else if (locale.includes('eu') || locale.includes('de') || locale.includes('fr') || locale.includes('es') || locale.includes('it')) {
+        detectedCurrency = 'EUR'
+      } else if (locale.includes('jp')) {
+        detectedCurrency = 'JPY'
+      } else if (locale.includes('ch')) {
+        detectedCurrency = 'CHF'
+      } else if (locale.includes('se')) {
+        detectedCurrency = 'SEK'
+      } else if (locale.includes('no')) {
+        detectedCurrency = 'NOK'
+      } else if (locale.includes('dk')) {
+        detectedCurrency = 'DKK'
+      }
+      
+      console.log('Currency detected from browser locale:', detectedCurrency, 'from locale:', locale)
     }
     
     // Store the detected currency for the session
     if (typeof window !== 'undefined') {
       sessionStorage.setItem('detectedCurrency', detectedCurrency)
-      console.log('Detected and stored currency:', detectedCurrency, 'from locale:', locale)
+      console.log('Final detected and stored currency:', detectedCurrency)
     }
     
     return detectedCurrency
   } catch (error) {
-    console.warn('Currency detection failed:', error)
-    // If anything fails, return USD and store it
+    console.warn('Currency detection completely failed:', error)
+    // If everything fails, return USD and store it
     if (typeof window !== 'undefined') {
       sessionStorage.setItem('detectedCurrency', 'USD')
     }
