@@ -182,7 +182,7 @@ export default function LandingPage() {
             {/* Description */}
             <p className="text-sm sm:text-base md:text-lg text-gray-600 leading-relaxed max-w-2xl mx-auto">
               AI-assisted analysis reviewed by healthcare professionals. We focus on identifying 
-              potential health concerns and provide ethical guidance—not cosmetic advice or product sales.
+              skin concerns and provide ethical guidance not product sales.
             </p>
 
             {/* Key Points - Better Mobile Layout */}
@@ -245,7 +245,7 @@ export default function LandingPage() {
                 Concerned About a Skin Change?
               </h3>
               <p className="text-sm sm:text-base md:text-lg text-gray-600 leading-relaxed">
-                Get a professional AI-powered assessment for rashes, moles, lesions, discoloration, or any other skin issue.
+                Get a professional AI-powered assessment for rashes, moles, lesions, discoloration or any other skin issue.
               </p>
             </div>
 
@@ -253,7 +253,7 @@ export default function LandingPage() {
             <p className="text-sm sm:text-base text-gray-600 leading-relaxed max-w-3xl mx-auto">
               Our AI-assisted analysis is built to identify potential medical concerns. For added peace of mind, 
               you can opt to have your case reviewed by a licensed online dermatologist. We offer ethical 
-              guidance—no cosmetic upselling, ever.
+              guidance—no cosmetic upselling, ever. This service is for over 18's only.
             </p>
 
             {/* Features Grid - Better Mobile Layout */}
@@ -330,7 +330,7 @@ export default function LandingPage() {
                       "Unusual discoloration or lesions",
                       "Skin growths or bumps",
                       "Areas that won't heal or keep returning",
-                      "Or Any other Skin concern you have"
+                      "Or any other skin concern you have"
                     ].map((item, index) => (
                       <div key={index} className="flex items-start space-x-3">
                         <div className="w-2 h-2 bg-teal-600 rounded-full mt-2 flex-shrink-0"></div>
@@ -371,7 +371,7 @@ export default function LandingPage() {
                 </CardHeader>
                 <CardContent className="text-center px-6">
                   <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
-                    Share clear photos and describe your concern. All data is encrypted.
+                    Upload clear photos & describe your concern.
                   </p>
                 </CardContent>
               </Card>
@@ -403,7 +403,7 @@ export default function LandingPage() {
                 </CardHeader>
                 <CardContent className="text-center px-6">
                   <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
-                    Referral summary will be downloadable & we can schedule an online dermatology appointment for you ({getDermatologistPrice()}).
+                    Downloadable referral letter written for dermatologists, with optional case review by a certified dermatologist via email.
                   </p>
                 </CardContent>
               </Card>
@@ -494,11 +494,11 @@ export default function LandingPage() {
               {[
                 {
                   q: "What is SkinWise and how does it work?",
-                  a: "SkinWise is a fast, affordable way to get a preliminary assessment of any visible skin concern — using expert-trained AI. You upload up to 4 photos and provide a brief description. Within 24 hours, you receive a clear, easy-to-read PDF explaining what the issue may be — plus a downloadable letter you can take to your dermatologist. It's not just for cosmetic concerns — SkinWise supports assessments for any skin condition, anywhere on the body."
+                  a: "SkinWise is a fast, affordable way to get a preliminary assessment of any visible skin concern — using expert-trained AI. You upload up to 4 photos and provide a brief description. Within 24 hours, you receive a clear, easy-to-read explanation of what the issue may be; plus a letter written for medical professionals that you can take to your dermatologist. SkinWise supports assessments for any skin condition, anywhere on the body."
                 },
                 {
                   q: `What do I get for ${getBasePrice()}?`,
-                  a: "You'll receive:\nA personalised PDF report that includes an AI-assisted analysis based on your submitted photos and description, written in clear, everyday language to help you understand your skin concern.\nA medically formatted letter for your Doctor or dermatologist, written in professional clinical terminology\nResults delivered within 24 hours directly to your email"
+                  a: "You'll receive:\nA personalised PDF report that includes an AI-assisted analysis based on your submitted photos and description, written in clear, everyday language to help you understand your skin concern.\nA medically formatted letter for your Doctor or dermatologist, written in professional clinical terminology.\nResults delivered within 24 hours directly to your email."
                 },
                 {
                   q: "Can I get a dermatologist to review my case?",
@@ -516,10 +516,7 @@ export default function LandingPage() {
                   q: "How long does it take to get results?",
                   a: "Your initial AI-assisted assessment is delivered within 24 hours. If you choose dermatologist review, that report usually arrives within 1–2 days."
                 },
-                {
-                  q: "What if I'm not comfortable uploading photos?",
-                  a: "We completely understand — your comfort and privacy come first. You can log in anonymously without providing an email address, and we never ask for your name or personal information.\n\nIf you're able to upload 1–4 clear photos (JPEG, PNG), it will help us provide a more accurate assessment.\n\nAll images are securely stored and never shared. Your payment is processed via Stripe, a trusted global provider, and we do not have access to any of your financial or personal details.\n\nYou're in control — always."
-                },
+
                 {
                   q: "Who can use SkinWise?",
                   a: "SkinWise is available globally, but only to individuals 18 years or older."
@@ -559,7 +556,7 @@ export default function LandingPage() {
               Ready to Get Your Skin Assessment?
             </h2>
             <p className="text-sm sm:text-base md:text-lg text-teal-100 break-words hyphens-auto">
-              Join thousands who have already received professional guidance for their skin concerns
+              Get trusted guidance for your skin — fast, private, and affordable
             </p>
             <Link href="/login">
               <Button className="bg-white text-teal-700 hover:bg-gray-100 px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base lg:text-lg font-medium shadow-lg transition-colors">
