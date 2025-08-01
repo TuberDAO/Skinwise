@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { AuthProvider } from '@/components/providers/auth-provider'
+import GoogleAnalytics from '@/components/analytics/GoogleAnalytics'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -94,6 +95,9 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/manifest.json" />
+        
+        {/* Google Analytics - Loads site-wide tracking */}
+        <GoogleAnalytics />
       </head>
       <body className={`${inter.className} h-full overflow-x-hidden`}>
         <AuthProvider>

@@ -31,6 +31,10 @@ NEXT_PUBLIC_ADMIN_EMAILS=sill.namson@gmx.com
 # App Configuration (PRODUCTION DOMAIN)
 NEXT_PUBLIC_APP_URL=https://yourdomain.vercel.app
 
+# Google Analytics Configuration
+# Replace with your actual GA4 tracking ID (e.g., G-XXXXXXXXXX)
+NEXT_PUBLIC_GOOGLE_ANALYTICS_ID=G-SKC8T014HV
+
 # Optional: Email Service (if using Resend)
 RESEND_API_KEY=re_your_resend_api_key_here
 
