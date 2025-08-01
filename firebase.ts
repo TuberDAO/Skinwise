@@ -4,6 +4,8 @@ import {
   getAuth, 
   GoogleAuthProvider, 
   signInWithPopup,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
   type Auth 
 } from 'firebase/auth';
 import { 
@@ -145,6 +147,89 @@ export const signInWithGoogle = async () => {
     
     // Generic error with helpful message
     throw new Error(`Sign-in failed: ${error.message || 'Unknown error'}`);
+  }
+};
+
+// Helper functions for email/password authentication
+export const signInWithEmail = async (email: string, password: string) => {
+  if (!auth) {
+    throw new Error('Firebase auth not initialized');
+  }
+  
+  try {
+    console.log('🔐 Starting email sign-in process...');
+    const result = await signInWithEmailAndPassword(auth, email, password);
+    console.log('✅ Email sign-in successful:', result.user?.email);
+    return result;
+  } catch (error: any) {
+    console.error('❌ Email sign-in failed:', error);
+    
+    // Handle specific authentication errors
+    if (error.code === 'auth/user-not-found') {
+      throw new Error('No account found with this email address.');
+    }
+    
+    if (error.code === 'auth/wrong-password') {
+      throw new Error('Incorrect password. Please try again.');
+    }
+    
+    if (error.code === 'auth/invalid-email') {
+      throw new Error('Please enter a valid email address.');
+    }
+    
+    if (error.code === 'auth/user-disabled') {
+      throw new Error('This account has been disabled. Please contact support.');
+    }
+    
+    if (error.code === 'auth/too-many-requests') {
+      throw new Error('Too many failed attempts. Please try again later.');
+    }
+    
+    if (error.code === 'auth/network-request-failed') {
+      throw new Error('Network error. Please check your connection and try again.');
+    }
+    
+    // Generic error with helpful message
+    throw new Error(`Sign-in failed: ${error.message || 'Unknown error'}`);
+  }
+};
+
+export const registerWithEmail = async (email: string, password: string) => {
+  if (!auth) {
+    throw new Error('Firebase auth not initialized');
+  }
+  
+  try {
+    console.log('🔐 Starting email registration process...');
+    const result = await createUserWithEmailAndPassword(auth, email, password);
+    console.log('✅ Email registration successful:', result.user?.email);
+    return result;
+  } catch (error: any) {
+    console.error('❌ Email registration failed:', error);
+    
+    // Handle specific registration errors
+    if (error.code === 'auth/email-already-in-use') {
+      throw new Error('An account with this email already exists. Please sign in instead.');
+    }
+    
+    if (error.code === 'auth/invalid-email') {
+      throw new Error('Please enter a valid email address.');
+    }
+    
+    if (error.code === 'auth/operation-not-allowed') {
+      throw new Error('Email/password accounts are not enabled. Please contact support.');
+    }
+    
+    if (error.code === 'auth/weak-password') {
+      throw new Error('Password is too weak. Please use at least 6 characters.');
+    }
+    
+    if (error.code === 'auth/network-request-failed') {
+      throw new Error('Network error. Please check your connection and try again.');
+    }
+    
+    // Generic error with helpful message
+    throw new Error(`Registration failed: ${error.message || 'Unknown error'}`);
   }
 };
 
