@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { AuthProvider } from '@/components/providers/auth-provider'
 import GoogleAnalytics from '@/components/analytics/GoogleAnalytics'
+import { Analytics } from '@vercel/analytics/next'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -107,6 +108,9 @@ export default function RootLayout({
             </main>
           </div>
         </AuthProvider>
+        
+        {/* Vercel Analytics - Tracks page views and user interactions */}
+        <Analytics />
       </body>
     </html>
   )
