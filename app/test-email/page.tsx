@@ -141,7 +141,7 @@ export default function TestEmailPage() {
               >
                 <Mail className="w-5 h-5 mb-2" />
                 <span className="font-medium">Assessment Email</span>
-                <span className="text-xs opacity-90">£15 AI report confirmation</span>
+                <span className="text-xs opacity-90">AI report confirmation</span>
               </Button>
 
               <Button

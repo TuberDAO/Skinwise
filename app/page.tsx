@@ -387,7 +387,7 @@ export default function LandingPage() {
                 </CardHeader>
                 <CardContent className="text-center px-6">
                   <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
-                    Advanced AI analyzes your skin concern, and we'll send you a clear, preliminary explanation of what it may be.
+                    Advanced AI examines your skin concern, and we'll send you a clear, preliminary explanation of what it may be.
                   </p>
                 </CardContent>
               </Card>
@@ -458,7 +458,7 @@ export default function LandingPage() {
                 </div>
                 <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 break-words hyphens-auto">Health-First Approach</h3>
                 <p className="text-sm sm:text-base text-gray-600 leading-relaxed break-words hyphens-auto">
-                  We prioritize identifying health concerns and root causes, not cosmetic improvements.
+                  We prioritize identifying health concerns and root causes.
                 </p>
               </div>
               
@@ -498,15 +498,15 @@ export default function LandingPage() {
                 },
                 {
                   q: `What do I get for ${getBasePrice()}?`,
-                  a: "You'll receive:\nA personalised PDF report that includes an AI-assisted analysis based on your submitted photos and description, written in clear, everyday language to help you understand your skin concern.\nA medically formatted letter for your Doctor or dermatologist, written in professional clinical terminology.\nResults delivered within 24 hours directly to your email."
+                  a: "You'll receive:\nA personalised PDF report that includes an AI-assisted analysis based on your submitted photos and description, written in clear, everyday language to help you understand your skin concern.\nA medically formatted letter for your Doctor or dermatologist, written in clinical terms.\nResults delivered within 24 hours directly to your email."
                 },
                 {
                   q: "Can I get a dermatologist to review my case?",
-                  a: `Yes. After your initial results, you can request a full review by a board-certified dermatologist for ${getDermatologistPrice()}. You'll receive an expert evaluation, clinical letter, and next steps — typically within 1–2 days. This is optional and can be requested after reviewing your AI assessment.`
+                  a: `Yes. After your initial results, you can request a full review by a certified dermatologist for ${getDermatologistPrice()}. You'll receive an expert evaluation, clinical letter, and next steps — typically within 1–2 days. This is optional and can be requested after reviewing your AI assessment.`
                 },
                 {
                   q: "What kinds of skin problems can this help with?",
-                  a: "SkinWise is designed for any visible skin concern — whether it's a rash, spot, mole, discolouration, irritation, swelling, or chronic condition. It is not limited to facial or beauty-related issues."
+                  a: "SkinWise is designed for any visible skin concern — whether it's a rash, spot, mole, discolouration, irritation, swelling or chronic condition. We examine any skin condition anywhere on the body."
                 },
                 {
                   q: "Is this like those instant AI skin apps?",
@@ -538,7 +538,7 @@ export default function LandingPage() {
                   </CardHeader>
                   {openFAQ === index && (
                     <CardContent className="pt-0">
-                      <p className="text-sm sm:text-base text-gray-600 leading-relaxed whitespace-pre-line break-words hyphens-auto">{faq.a}</p>
+                      <p className="text-sm sm:text-base text-gray-600 leading-relaxed whitespace-pre-line break-words hyphens-auto" style={{ wordBreak: 'keep-all' }}>{faq.a}</p>
                     </CardContent>
                   )}
                 </Card>
