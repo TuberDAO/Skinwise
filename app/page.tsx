@@ -189,7 +189,7 @@ export default function LandingPage() {
             <div className="flex flex-col sm:flex-row sm:justify-center sm:flex-wrap gap-3 sm:gap-4 lg:gap-6 max-w-4xl mx-auto">
               <div className="flex items-center justify-center space-x-2 text-sm sm:text-base text-gray-600 py-2 px-3">
                 <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-teal-600 flex-shrink-0" />
-                <span className="whitespace-nowrap">24-48 hour analysis</span>
+                <span className="whitespace-nowrap">24 hour analysis</span>
               </div>
               <div className="flex items-center justify-center space-x-2 text-sm sm:text-base text-gray-600 py-2 px-3">
                 <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-teal-600 flex-shrink-0" />
@@ -403,7 +403,7 @@ export default function LandingPage() {
                 </CardHeader>
                 <CardContent className="text-center px-6">
                   <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
-                    Downloadable referral letter written for dermatologists, with optional case review by a certified dermatologist via email.
+                    Downloadable referral letter in medical terms to give your dermatologist, with optional case review by a certified dermatologist via email.
                   </p>
                 </CardContent>
               </Card>
@@ -556,7 +556,7 @@ export default function LandingPage() {
               Ready to Get Your Skin Assessment?
             </h2>
             <p className="text-sm sm:text-base md:text-lg text-teal-100 break-words hyphens-auto">
-              Get trusted guidance for your skin — fast, private, and affordable
+              Get trusted guidance for your skin. Fast, Private and Affordable
             </p>
             <Link href="/login">
               <Button className="bg-white text-teal-700 hover:bg-gray-100 px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base lg:text-lg font-medium shadow-lg transition-colors">
