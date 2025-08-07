@@ -209,7 +209,7 @@ export default function LandingPage() {
                 </Button>
               </Link>
               <p className="text-xs sm:text-sm text-gray-500 px-2">
-                Secure assessment • {getBasePrice()} • Results within 24 hours
+                Secure assessment • • Results within 24 hours
               </p>
             </div>
 
