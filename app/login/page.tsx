@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { signInWithGoogle, signInWithEmail, registerWithEmail, validateProductionConfig } from '@/firebase'
+import { signInWithGoogle, signInWithEmail, registerWithEmail } from '@/firebase'
 import { useAuth } from '@/components/providers/auth-provider'
 import { Heart, Shield, Mail, Lock, Eye, EyeOff } from "lucide-react"
 import Link from "next/link"
@@ -25,11 +25,6 @@ export default function LoginPage() {
   useEffect(() => {
     if (user) {
       router.push('/upload')
-    }
-    
-    // Validate production configuration on login page load
-    if (process.env.NODE_ENV === 'production') {
-      validateProductionConfig()
     }
   }, [user, router])
 
