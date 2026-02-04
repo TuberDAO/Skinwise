@@ -8,17 +8,18 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 // Valid price ranges (in cents) to prevent payment manipulation
+// Base price is £6 GBP, converted to other currencies
 const VALID_ASSESSMENT_PRICES = {
-  'USD': { min: 1500, max: 2500 }, // $15-25
-  'GBP': { min: 1200, max: 2000 }, // £12-20  
-  'EUR': { min: 1400, max: 2300 }, // €14-23
-  'CAD': { min: 2000, max: 3200 }, // C$20-32
-  'AUD': { min: 2200, max: 3500 }, // A$22-35
-  'JPY': { min: 2200, max: 3600 }, // ¥2200-3600
-  'CHF': { min: 1400, max: 2300 }, // CHF 14-23
-  'SEK': { min: 1600, max: 2600 }, // SEK 16-26
-  'NOK': { min: 1600, max: 2600 }, // NOK 16-26
-  'DKK': { min: 1100, max: 1800 }, // DKK 11-18
+  'USD': { min: 700, max: 1200 }, // ~$8-12 (£6 converted)
+  'GBP': { min: 500, max: 800 }, // £5-8  
+  'EUR': { min: 600, max: 1000 }, // €6-10
+  'CAD': { min: 900, max: 1500 }, // C$9-15
+  'AUD': { min: 1000, max: 1600 }, // A$10-16
+  'JPY': { min: 900, max: 1500 }, // ¥900-1500
+  'CHF': { min: 600, max: 1000 }, // CHF 6-10
+  'SEK': { min: 7000, max: 12000 }, // SEK 70-120
+  'NOK': { min: 7000, max: 12000 }, // NOK 70-120
+  'DKK': { min: 5000, max: 9000 }, // DKK 50-90
 } as const
 
 /**

@@ -5,9 +5,11 @@ import { useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAuth } from '@/components/providers/auth-provider'
-import { Heart, CreditCard, Shield, Clock, Users } from "lucide-react"
+import { Heart, CreditCard, Shield, Clock, Users, LogOut } from "lucide-react"
 import Link from "next/link"
 import { stripePromise } from '@/lib/stripe'
+import { auth } from '@/firebase'
+import { signOut } from 'firebase/auth'
 import { detectUserCurrency, formatPrice, getUserCurrencyFromLocale, type SupportedCurrency } from '@/lib/currency'
 
 export default function PaymentPage() {
@@ -205,8 +207,22 @@ export default function PaymentPage() {
             className="h-8 sm:h-10 w-auto"
           />
         </Link>
-        <div className="ml-auto text-xs sm:text-sm text-slate-600 truncate max-w-[120px] sm:max-w-none">
-          {user.email}
+        <div className="ml-auto flex items-center space-x-3">
+          <span className="text-xs sm:text-sm text-slate-600 truncate max-w-[120px] sm:max-w-none">
+            {user.email}
+          </span>
+          <button
+            onClick={async () => {
+              if (auth) {
+                await signOut(auth)
+                router.push('/login')
+              }
+            }}
+            className="text-xs sm:text-sm text-slate-500 hover:text-slate-700 flex items-center"
+          >
+            <LogOut className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+            <span className="hidden sm:inline">Logout</span>
+          </button>
         </div>
       </header>
 
@@ -227,7 +243,7 @@ export default function PaymentPage() {
             <CardHeader className="pb-3 sm:pb-6">
               <CardTitle className="text-base sm:text-lg">Assessment Summary</CardTitle>
               <CardDescription className="text-xs sm:text-sm">
-                Your submission is ready for professional review
+                Your submission is ready for review
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3 sm:space-y-4">
@@ -239,19 +255,19 @@ export default function PaymentPage() {
                 <div className="space-y-2 text-center sm:text-left">
                   <p className="text-xs sm:text-sm font-medium">Description provided</p>
                   <p className="text-xl sm:text-2xl font-bold text-brand-blue">
-                    {assessmentData.description ? '✓' : '✗'}
+                    {(assessmentData.additionalNotes || assessmentData.description || assessmentData.symptomTypes?.length > 0 || assessmentData.bodyLocation) ? 'Yes' : '-'}
                   </p>
                 </div>
               </div>
               
-              {assessmentData.description && (
+              {(assessmentData.additionalNotes || assessmentData.description) && (
                 <div className="border-t pt-3 sm:pt-4">
                   <p className="text-xs sm:text-sm font-medium mb-2">Your description:</p>
                   <p className="text-xs sm:text-sm text-slate-600 bg-slate-50 p-2 sm:p-3 rounded">
-                    {assessmentData.description.length > 100 
-                      ? assessmentData.description.substring(0, 100) + '...'
-                      : assessmentData.description
-                    }
+                    {(() => {
+                      const desc = assessmentData.additionalNotes || assessmentData.description || ''
+                      return desc.length > 100 ? desc.substring(0, 100) + '...' : desc
+                    })()}
                   </p>
                 </div>
               )}
@@ -263,23 +279,23 @@ export default function PaymentPage() {
             <CardHeader className="pb-3 sm:pb-6">
               <CardTitle className="flex items-center space-x-2 text-base sm:text-lg">
                 <CreditCard className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span>Professional Analysis</span>
+                <span>Skin Analysis</span>
               </CardTitle>
               <CardDescription className="text-xs sm:text-sm">
-                One-time payment for comprehensive skin health assessment
+                One-time payment
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 sm:space-y-6">
               <div className="text-center">
                 <div className="text-2xl sm:text-3xl font-bold text-brand-blue">
-                  {currencyLoading ? '$19.95 USD' : formatPrice(userCurrency)}
+                  {currencyLoading ? '£6' : formatPrice(userCurrency)}
                 </div>
               </div>
 
               <div className="space-y-3 sm:space-y-4">
                 <div className="flex items-center space-x-3">
                   <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 flex-shrink-0" />
-                  <span className="text-xs sm:text-sm">Results within 24-48 hours</span>
+                  <span className="text-xs sm:text-sm">Results within 2-4 hours</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <Users className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 flex-shrink-0" />
@@ -295,10 +311,9 @@ export default function PaymentPage() {
                 <h4 className="font-medium text-blue-900 mb-2 text-sm sm:text-base">What you'll receive:</h4>
                 <ul className="text-xs sm:text-sm text-blue-800 space-y-1">
                   <li>• Preliminary skin health analysis</li>
-                  <li>• Root-cause recommendations (hydration, diet, lifestyle)</li>
+                  <li>• Root-cause possibilities</li>
                   <li>• Product suggestions only when necessary</li>
                   <li>• Optional dermatologist referral if needed</li>
-                  <li>• Downloadable wellness guide</li>
                 </ul>
               </div>
 

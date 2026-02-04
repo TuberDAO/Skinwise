@@ -7,6 +7,7 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInAnonymously,
+  signOut as firebaseSignOut,
   type Auth 
 } from 'firebase/auth';
 import { 
@@ -29,11 +30,13 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-console.log('Firebase config loaded from environment variables:', {
-  apiKey: firebaseConfig.apiKey ? firebaseConfig.apiKey.substring(0, 10) + '...' : 'missing',
-  authDomain: firebaseConfig.authDomain || 'missing',
-  projectId: firebaseConfig.projectId || 'missing',
-  storageBucket: firebaseConfig.storageBucket || 'missing'
+// TEMPORARY DEBUG LOG - Remove after fixing env vars
+console.log('[Firebase Debug] Config check:', {
+  apiKeyPrefix: firebaseConfig.apiKey ? firebaseConfig.apiKey.substring(0, 6) : 'EMPTY',
+  apiKeyLength: firebaseConfig.apiKey ? firebaseConfig.apiKey.length : 0,
+  authDomain: firebaseConfig.authDomain || 'EMPTY',
+  projectId: firebaseConfig.projectId || 'EMPTY',
+  isPlaceholder: firebaseConfig.apiKey?.includes('PASTE') || firebaseConfig.apiKey?.includes('your') ? 'YES - INVALID' : 'NO'
 });
 
 // Initialize Firebase app (prevent reinitialization) with error handling
@@ -210,6 +213,22 @@ export const signInAnon = async () => {
     }
     
     throw new Error(`Anonymous sign-in failed: ${error.message || 'Unknown error'}`);
+  }
+};
+
+// Helper function for sign out
+export const signOut = async () => {
+  if (!auth) {
+    throw new Error('Firebase auth not initialized');
+  }
+  
+  try {
+    console.log('Signing out user...');
+    await firebaseSignOut(auth);
+    console.log('Sign out successful');
+  } catch (error: any) {
+    console.error('Sign out failed:', error);
+    throw new Error(`Sign out failed: ${error.message || 'Unknown error'}`);
   }
 };
 

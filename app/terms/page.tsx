@@ -30,17 +30,17 @@ export default function TermsPage() {
               Terms of Service & Privacy Policy
             </h1>
             <p className="text-slate-600">
-              Legal information and privacy practices for SkinWise
+              Legal information and privacy practices for SkinWiseapp
             </p>
           </div>
 
           <Card className="medical-card">
             <CardHeader>
               <CardTitle className="text-center text-2xl text-brand-blue">
-                Unified Terms of Service and Privacy Policy for SkinWise
+                Unified Terms of Service and Privacy Policy for SkinWiseapp
               </CardTitle>
               <p className="text-center text-sm text-slate-600">
-                <em>Last Updated: 28th July 2025</em>
+                <em>Last Updated: 3rd February 2026</em>
               </p>
             </CardHeader>
             <CardContent className="prose prose-slate max-w-none space-y-6">
@@ -49,8 +49,8 @@ export default function TermsPage() {
                   IMPORTANT NOTICE: PLEASE READ CAREFULLY BEFORE USING THIS SERVICE.
                 </p>
                 <p className="text-sm text-yellow-700">
-                  By accessing, browsing, registering for, or using the SkinWise platform ("Service"), 
-                  including all content, features, and functionalities available via skinwise.app and 
+                  By accessing, browsing, registering for, or using the SkinWiseapp platform ("Service"), 
+                  including all content, features, and functionalities available via SkinWiseapp and 
                   related services, you ("User") agree to be legally bound by the following Terms of 
                   Service and Privacy Policy ("Agreement"). If you do not agree with any of these 
                   terms or conditions, you must not use the Service.
@@ -88,7 +88,7 @@ export default function TermsPage() {
                       insights based on submitted photographs and descriptions.
                     </li>
                     <li>
-                      <strong>SkinWise does not provide medical advice, diagnosis, or treatment</strong>. 
+                      <strong>SkinWiseapp does not provide medical advice, diagnosis, or treatment</strong>. 
                       The content on this platform is for <strong>informational purposes only</strong>.
                     </li>
                     <li>Use of the Service does not establish a doctor-patient relationship.</li>
@@ -110,7 +110,7 @@ export default function TermsPage() {
                       basis without warranties of any kind, express or implied.
                     </li>
                     <li>
-                      <strong>SkinWise, its owners, employees, affiliates, or contractors shall not be liable</strong> 
+                      <strong>SkinWiseapp, its owners, employees, affiliates, or contractors shall not be liable</strong> 
                       for any direct, indirect, incidental, special, or consequential damages arising from or 
                       relating to the use of the Service.
                     </li>
@@ -128,7 +128,7 @@ export default function TermsPage() {
                   </h2>
                   <div className="mt-4 space-y-4">
                     <div>
-                      <h3 className="font-semibold">SkinWise collects and processes data as outlined below:</h3>
+                      <h3 className="font-semibold">SkinWiseapp collects and processes data as outlined below:</h3>
                       <ul className="list-disc pl-6 space-y-2 mt-2">
                         <li>
                           <strong>Personal Data</strong>: including names, email addresses, and payment information 
@@ -136,7 +136,7 @@ export default function TermsPage() {
                         </li>
                         <li>
                           <strong>Uploaded Content</strong>: photographs and user-submitted descriptions are stored 
-                          in encrypted and access-restricted Firebase Storage.
+                          in encrypted and access-restricted storage.
                         </li>
                         <li>
                           <strong>Analytics and Usage Data</strong>: collected via cookies, logs, and third-party 
@@ -186,7 +186,7 @@ export default function TermsPage() {
                   <ul className="list-disc pl-6 space-y-2 mt-4">
                     <li>
                       All content, trademarks, logos, and code on the Service are the <strong>exclusive property 
-                      of SkinWise</strong> or its licensors.
+                      of SkinWiseapp</strong> or its licensors.
                     </li>
                     <li>
                       Users may not copy, modify, distribute, or reverse engineer any part of the platform 
@@ -215,7 +215,7 @@ export default function TermsPage() {
                     7. Modifications to This Agreement
                   </h2>
                   <p className="mt-4">
-                    SkinWise reserves the right to modify or replace this Agreement at any time. Users will be 
+                    SkinWiseapp reserves the right to modify or replace this Agreement at any time. Users will be 
                     notified of material changes via the Service. Continued use of the platform after such 
                     changes constitutes acceptance of the updated terms.
                   </p>
@@ -230,7 +230,7 @@ export default function TermsPage() {
                     This Agreement shall be governed by and construed in accordance with the laws of{" "}
                     <strong>England and Wales</strong>, without regard to conflict of law principles. 
                     Any disputes shall be subject to the <strong>exclusive jurisdiction</strong> of the 
-                    courts located in London, UK.
+                    courts located in London, United Kingdom of Great Britain and Northern Ireland.
                   </p>
                 </section>
 
@@ -255,7 +255,7 @@ export default function TermsPage() {
                 {/* Final Agreement */}
                 <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 text-center">
                   <p className="font-semibold text-slate-800">
-                    By using SkinWise, you acknowledge that you have read, understood, and agree to be 
+                    By using SkinWiseapp, you acknowledge that you have read, understood, and agree to be 
                     legally bound by this Unified Terms of Service and Privacy Policy.
                   </p>
                 </div>

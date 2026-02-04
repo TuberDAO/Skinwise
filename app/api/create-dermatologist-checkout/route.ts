@@ -7,18 +7,18 @@ import { rateLimit, createRateLimitResponse, logRateLimitViolation } from '@/lib
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-// Valid price ranges (in cents) for dermatologist consultations
+// Valid price ranges (in cents) for dermatologist consultations (base price ~£25 GBP)
 const VALID_DERMATOLOGIST_PRICES = {
-  'USD': { min: 12000, max: 18000 }, // $120-180
-  'GBP': { min: 9000, max: 14000 },  // £90-140
-  'EUR': { min: 11000, max: 16000 }, // €110-160
-  'CAD': { min: 16000, max: 24000 }, // C$160-240
-  'AUD': { min: 18000, max: 27000 }, // A$180-270
-  'JPY': { min: 18000, max: 27000 }, // ¥18000-27000
-  'CHF': { min: 11000, max: 16000 }, // CHF 110-160
-  'SEK': { min: 12000, max: 18000 }, // SEK 120-180
-  'NOK': { min: 12000, max: 18000 }, // NOK 120-180
-  'DKK': { min: 8000, max: 12000 },  // DKK 80-120
+  'USD': { min: 3000, max: 4500 },   // $30-45 (£25 converted)
+  'GBP': { min: 2000, max: 3000 },   // £20-30
+  'EUR': { min: 2500, max: 4000 },   // €25-40
+  'CAD': { min: 4000, max: 5500 },   // C$40-55
+  'AUD': { min: 4000, max: 6000 },   // A$40-60
+  'JPY': { min: 3500, max: 5000 },   // ¥3500-5000
+  'CHF': { min: 2500, max: 4000 },   // CHF 25-40
+  'SEK': { min: 30000, max: 40000 }, // SEK 300-400
+  'NOK': { min: 28000, max: 38000 }, // NOK 280-380
+  'DKK': { min: 19000, max: 27000 }, // DKK 190-270
 } as const
 
 /**

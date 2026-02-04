@@ -1,0 +1,31 @@
+4242 4242 4242 4242 - Succeeds and processes immediately
+4000 0000 0000 3155 - Requires 3D Secure authentication for successful payment
+4000 0000 0000 9995 - Always fails with insufficient_funds decline code
+
+4000 0027 6000 3184 - Requires 3D Secure authentication for every transaction
+4000 0000 0000 0341 - Use this to simulate declined payments for cards already attached to customers
+Fraud Testing
+4000 0000 0000 4954 - Creates charge with highest risk level (may be blocked by your Radar rules)
+4100 0000 0000 0019 - Creates charge with highest risk level and is always blocked
+4000 0000 0000 9235 - Creates charge with elevated risk level
+Usage Notes
+Use any future expiration date
+Use any 3-digit CVC code
+Use any billing postal code
+These only work with test API keys in test mode
+
+
+Browser tab prompt. 
+
+
+Assume the role of worlds best UX/UI and developer and make these changes to the site. Ensure there is an easy rollback option just
+in case of any issues.  When making changes always bear in mind not to change things like mobile responsiveness, etc everything still
+needs to look good eg when on the cellphone is important that the user sees the green "start skin assessment" button.  Most of these changes are just cosmetic changes so the look and feel of the site shouldn't change that much. Here are the list of requested changes:
+1. On the browser tab please ensure it has the company logo, ensure different sizes so this looks perfect and optimal  across google search results, android, variety of browsers such a chrome, firefox, internet explorer etc PLease let me know if you need to me to upload the logo again . Here are some tips regarding this from AI , you do what you thinks best and just let me know at teh end Key Recommendations:
+Best Standard Size: 32x32 pixels (PNG or ICO format).
+Google Search Results: Google recommends multiples of 48px square (e.g., 48x48, 96x96, 144x144).
+Format: PNG is highly supported and allows transparency. SVG is ideal for scaling but requires ensuring compatibility.
+File Size: Keep it under 100 KB, ideally as small as possible. To ensure your logo looks good everywhere (tabs, bookmarks, mobile), use a 180x180 px PNG for Apple devices and a 192x192 px PNG for Android, letting the browser scale them down.
+2. On the home page first screen please change "We focus on identifying skin concerns and provide ethical guidance not product sales" to "
+We focus on ethical identification of skin concerns & ethical guidance not cosmetic product sales."
+3. On the home page showing the picture , the last part of the picture that you can see on teh first attachment to this prompt, "24hrs" should be changed to "2-4hrs".  4. Where it says results in 24hrs with the big green tick above it as shown in the IN the second attached screenshot , please put a dash in between the 2 and the 4 so it says 2-4hrs  5.  Just above the green button that says "Start Skin Assessment),  please add, in a smaller font this in brackets  (£6 for the initial detailed review) , please ensure that £6 changes currency depending on which region of the world ip ,  Stripe accepts payments from many regions of the world so this should be reflected here and auto changes depending on where  the website is accessed from 6. Where it says "We offer ethical guidance—no cosmetic upselling, ever. This service is for over 18's only."  please change it to this "We offer ethical guidance; no cosmetic upselling, ever. This service is for over 18's only." 7. Change "Confidential & no product upselling" that is located under the green circle with a badge to "Confidential & no cosmetic upselling" 8. Where it says "No Product Sales", just underneath that please change "We don't sell products or earn commissions. Our recommendations focus purely on your health."  to "We don't upsell unnecessary products. Our recommendations focus purely on your health."

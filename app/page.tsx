@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { CheckCircle, Shield, UserCheck, Stethoscope, Menu, X, ChevronDown, HelpCircle } from "lucide-react"
+import { CheckCircle, Shield, UserCheck, Stethoscope, Menu, X, ChevronDown, HelpCircle, Quote, User } from "lucide-react"
 import { useState, useEffect } from "react"
 import { detectUserCurrency, formatPrice, formatDermatologistPrice } from '@/lib/currency'
 
@@ -28,8 +28,8 @@ export default function LandingPage() {
     loadCurrency()
   }, [])
 
-  const getBasePrice = () => currencyLoading ? '$19.95 USD' : formatPrice(userCurrency)
-  const getDermatologistPrice = () => currencyLoading ? '$149.95 USD' : formatDermatologistPrice(userCurrency)
+  const getBasePrice = () => currencyLoading ? '£6' : formatPrice(userCurrency)
+  const getDermatologistPrice = () => currencyLoading ? '£25' : formatDermatologistPrice(userCurrency)
 
   const toggleFAQ = (index: number) => {
     setOpenFAQ(openFAQ === index ? null : index)
@@ -122,6 +122,12 @@ export default function LandingPage() {
             >
               FAQ
             </Link>
+            <Link 
+              className="text-sm font-medium text-gray-600 hover:text-teal-700 transition-colors whitespace-nowrap" 
+              href="#testimonials"
+            >
+              Testimonials
+            </Link>
           </nav>
         </div>
         
@@ -149,6 +155,13 @@ export default function LandingPage() {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 FAQ
+              </Link>
+              <Link 
+                className="block px-4 py-3 text-base font-medium text-gray-700 hover:text-teal-700 hover:bg-gray-50 rounded-md transition-colors" 
+                href="#testimonials"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Testimonials
               </Link>
             </nav>
           </div>
@@ -181,15 +194,15 @@ export default function LandingPage() {
 
             {/* Description */}
             <p className="text-sm sm:text-base md:text-lg text-gray-600 leading-relaxed max-w-2xl mx-auto">
-              AI-assisted analysis reviewed by healthcare professionals. We focus on identifying 
-              skin concerns and provide ethical guidance not product sales.
+              AI-assisted analysis reviewed by healthcare professionals. We focus on assessment of 
+              skin concerns & ethical guidance not cosmetic product sales.
             </p>
 
             {/* Key Points - Better Mobile Layout */}
             <div className="flex flex-col sm:flex-row sm:justify-center sm:flex-wrap gap-3 sm:gap-4 lg:gap-6 max-w-4xl mx-auto">
               <div className="flex items-center justify-center space-x-2 text-sm sm:text-base text-gray-600 py-2 px-3">
                 <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-teal-600 flex-shrink-0" />
-                <span className="whitespace-nowrap">24 hour analysis</span>
+                <span className="whitespace-nowrap">2-4 hour analysis</span>
               </div>
               <div className="flex items-center justify-center space-x-2 text-sm sm:text-base text-gray-600 py-2 px-3">
                 <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-teal-600 flex-shrink-0" />
@@ -203,14 +216,23 @@ export default function LandingPage() {
 
             {/* CTA Button */}
             <div className="max-w-sm mx-auto space-y-3">
+              <p className="text-xs sm:text-sm text-gray-600 text-center">
+                ({currencyLoading ? '£6' : formatPrice(userCurrency)} for the initial detailed review)
+              </p>
               <Link href="/login">
                 <Button className="w-full bg-teal-700 hover:bg-teal-800 text-white text-sm sm:text-base md:text-lg py-3 sm:py-4 px-6 shadow-lg transition-colors">
                   Start Skin Assessment
                 </Button>
               </Link>
               <p className="text-xs sm:text-sm text-gray-500 px-2">
-                Secure assessment • • Results within 24 hours
+                Secure assessment • Results within 2-4 hours
               </p>
+              <Link 
+                href="#testimonials" 
+                className="inline-block text-xs sm:text-sm text-teal-700 hover:text-teal-800 underline underline-offset-2 transition-colors"
+              >
+                See testimonials
+              </Link>
             </div>
 
             {/* Trust Indicators */}
@@ -253,7 +275,7 @@ export default function LandingPage() {
             <p className="text-sm sm:text-base text-gray-600 leading-relaxed max-w-3xl mx-auto">
               Our AI-assisted analysis is built to identify potential medical concerns. For added peace of mind, 
               you can opt to have your case reviewed by a licensed online dermatologist. We offer ethical 
-              guidance—no cosmetic upselling, ever. This service is for over 18's only.
+              guidance; no cosmetic upselling, ever. This service is for over 18's only.
             </p>
 
             {/* Features Grid - Better Mobile Layout */}
@@ -263,7 +285,7 @@ export default function LandingPage() {
                   <CheckCircle className="h-8 w-8 sm:h-10 sm:w-10 text-teal-700" />
                 </div>
                 <div>
-                  <h4 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 mb-2">Results in 24 hours</h4>
+                  <h4 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 mb-2">Results in 2-4 hours</h4>
                   <p className="text-sm sm:text-base text-gray-600 leading-relaxed">Fast, reliable analysis when you need answers</p>
                 </div>
               </div>
@@ -284,7 +306,7 @@ export default function LandingPage() {
                 </div>
                 <div>
                   <h4 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 mb-2">Private & ethical approach</h4>
-                  <p className="text-sm sm:text-base text-gray-600 leading-relaxed">Confidential & no product upselling</p>
+                  <p className="text-sm sm:text-base text-gray-600 leading-relaxed">Confidential & no cosmetic upselling</p>
                 </div>
               </div>
             </div>
@@ -446,9 +468,9 @@ export default function LandingPage() {
                 <div className="w-16 h-16 sm:w-20 sm:h-20 bg-teal-100 rounded-full flex items-center justify-center mx-auto">
                   <Shield className="h-8 w-8 sm:h-10 sm:w-10 text-teal-700" />
                 </div>
-                <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 break-words hyphens-auto">No Product Sales</h3>
-                <p className="text-sm sm:text-base text-gray-600 leading-relaxed break-words hyphens-auto">
-                  We don't sell products or earn commissions. Our recommendations focus purely on your health.
+                <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">No Product Sales</h3>
+                <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
+                  We don't upsell cosmetic products. Our recommendations focus purely on your health.
                 </p>
               </div>
               
@@ -486,40 +508,40 @@ export default function LandingPage() {
                 Frequently Asked Questions
               </h2>
               <p className="text-sm sm:text-base md:text-lg text-gray-600">
-                Get answers to common questions about SkinWise
+                Get answers to common questions about SkinWiseapp
               </p>
             </div>
             
             <div className="space-y-4 text-left">
               {[
                 {
-                  q: "What is SkinWise and how does it work?",
-                  a: "SkinWise is a fast, affordable way to get a preliminary assessment of any visible skin concern — using expert-trained AI. You upload up to 4 photos and provide a brief description. Within 24 hours, you receive a clear, easy-to-read explanation of what the issue may be; plus a letter written for medical professionals that you can take to your dermatologist. SkinWise supports assessments for any skin condition, anywhere on the body."
+                  q: "What is SkinWiseapp and how does it work?",
+                  a: "SkinWiseapp is a fast, affordable way to get a preliminary assessment of any visible skin concern; using expert-trained AI & human review. You upload up to 4 photos and provide a brief description. Within 2-4 hours, you receive a clear, easy-to-read explanation of what the issue may be; plus a letter written for medical professionals that you can take to your dermatologist. SkinWiseapp supports assessments for any skin condition, anywhere on the body. Strictly confidential with an anonymous login option."
                 },
                 {
                   q: `What do I get for ${getBasePrice()}?`,
-                  a: "You'll receive:\nA personalised PDF report that includes an AI-assisted analysis based on your submitted photos and description, written in clear, everyday language to help you understand your skin concern.\nA medically formatted letter for your Doctor or dermatologist, written in clinical terms.\nResults delivered within 24 hours directly to your email."
+                  a: "You'll receive:\nA detailed PDF report that includes an AI-assisted analysis based on your submitted photos and description, written in clear, everyday language to help you understand your skin concern.\nA medically formatted letter for your Doctor or dermatologist, written in clinical terms.\nResults delivered within 2-4 hours directly to your email."
                 },
                 {
-                  q: "Can I get a dermatologist to review my case?",
-                  a: `Yes. After your initial results, you can request a full review by a certified dermatologist for ${getDermatologistPrice()}. You'll receive an expert evaluation, clinical letter, and next steps — typically within 1–2 days. This is optional and can be requested after reviewing your AI assessment.`
+                  q: "Can I get a certified dermatologist to review my case?",
+                  a: `Yes. After your initial results, you can request a more detailed review by a certified dermatologist for ${getDermatologistPrice()}. You'll receive an expert evaluation, clinical letter, and next steps; typically within 1–2 days.`
                 },
                 {
                   q: "What kinds of skin problems can this help with?",
-                  a: "SkinWise is designed for any visible skin concern — whether it's a rash, spot, mole, discolouration, irritation, swelling or chronic condition. We examine any skin condition anywhere on the body."
+                  a: "SkinWiseapp is designed for any visible skin concern; whether it's a rash, spot, mole, discolouration, irritation, swelling or chronic condition. We examine any skin condition anywhere on the body."
                 },
                 {
                   q: "Is this like those instant AI skin apps?",
-                  a: "No — and that's intentional. Many apps give instant results that are often wrong. SkinWise takes up to 24 hours because your submission is carefully evaluated using medically informed AI workflows. Accuracy is our top priority — not speed."
+                  a: "No — and that's intentional. Many apps give instant results that are often wrong. SkinWiseapp takes up to 2-4 hours because your submission is carefully evaluated using medically informed AI workflows and human review. Accuracy is our top priority. We also offer further analysis with a certified dermatologist. Also, please note, to protect your data and ensure the best results, please ensure you're using the official SkinWise app. Other apps may have similar names, but you can always identify us by our official logo and our domain: skinwiseapp.com"
                 },
                 {
                   q: "How long does it take to get results?",
-                  a: "Your initial AI-assisted assessment is delivered within 24 hours. If you choose dermatologist review, that report usually arrives within 1–2 days."
+                  a: "Your initial human reviewed AI-assisted assessment is delivered within 2-4 hours, some cases may take 24hrs but most are within a few hours. If you choose certified dermatologist review, that report usually arrives within 1–2 days."
                 },
 
                 {
-                  q: "Who can use SkinWise?",
-                  a: "SkinWise is available globally, but only to individuals 18 years or older."
+                  q: "Who can use SkinWiseapp?",
+                  a: "SkinWiseapp is available globally. You must be 18yrs old or older to use SkinWiseapp."
                 }
               ].map((faq, index) => (
                 <Card key={index} className="border border-gray-200 bg-white shadow-sm">
@@ -544,6 +566,103 @@ export default function LandingPage() {
                 </Card>
               ))}
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section id="testimonials" className="bg-gray-50 scroll-mt-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
+          <div className="text-center space-y-8 sm:space-y-10">
+            {/* Section Header */}
+            <div className="space-y-3 sm:space-y-4 max-w-3xl mx-auto">
+              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900">
+                Testimonials
+              </h2>
+              <p className="text-sm sm:text-base md:text-lg text-gray-600">
+                Feedback from real users (names changed for privacy)
+              </p>
+            </div>
+            
+            {/* Testimonial Cards Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto">
+              {/* Testimonial 1 - Ms Anne */}
+              <Card className="bg-white shadow-md border-gray-100 hover:shadow-lg transition-shadow duration-300 animate-fade-in-up">
+                <CardContent className="p-6 space-y-4">
+                  {/* Quote Icon */}
+                  <Quote className="h-8 w-8 text-teal-200 -mb-2" />
+                  
+                  {/* Quote Text */}
+                  <p className="text-sm sm:text-base text-gray-600 leading-relaxed italic">
+                    "I wanted to share my sincere gratitude for the guidance I received. I am now fully recovered and it's a relief to finally be comfortable and pain-free in my daily life again. I truly appreciate the assessments provided; wishing the entire team nothing but the best."
+                  </p>
+                  
+                  {/* User Info - single flex row: avatar, name, badge */}
+                  <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 pt-4 border-t border-gray-100 min-h-[3rem]">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-teal-100 rounded-full flex items-center justify-center flex-shrink-0" aria-hidden>
+                      <span className="text-sm sm:text-base font-semibold text-teal-700">AA</span>
+                    </div>
+                    <p className="text-sm sm:text-base font-medium text-gray-900 whitespace-nowrap flex-shrink-0 ">Ms Anne</p>
+                    <span className="inline-flex flex-shrink-0 items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 whitespace-nowrap ml-auto">
+                      Positive outcome
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Testimonial 2 - Mr Ben */}
+              <Card className="bg-white shadow-md border-gray-100 hover:shadow-lg transition-shadow duration-300 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+                <CardContent className="p-6 space-y-4">
+                  {/* Quote Icon */}
+                  <Quote className="h-8 w-8 text-teal-200 -mb-2" />
+                  
+                  {/* Quote Text */}
+                  <p className="text-sm sm:text-base text-gray-600 leading-relaxed italic">
+                    "Thanks. This is the first photo I've taken and I will take periodic photos as advised. The letter you wrote for my doctor was also very handy, he quickly arranged an appointment with the local dermatologist. Great service."
+                  </p>
+                  
+                  {/* User Info - single flex row: avatar, name, badge */}
+                  <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 pt-4 border-t border-gray-100 min-h-[3rem]">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0" aria-hidden>
+                      <span className="text-sm sm:text-base font-semibold text-blue-700">BK</span>
+                    </div>
+                    <p className="text-sm sm:text-base font-medium text-gray-900 whitespace-nowrap flex-shrink-0 ">Mr Ben</p>
+                    <span className="inline-flex flex-shrink-0 items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 whitespace-nowrap ml-auto">
+                      Helpful referral letter
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Testimonial 3 - Ms Chloe */}
+              <Card className="bg-white shadow-md border-gray-100 hover:shadow-lg transition-shadow duration-300 animate-fade-in-up md:col-span-2 lg:col-span-1 md:max-w-md md:mx-auto lg:max-w-none" style={{ animationDelay: '200ms' }}>
+                <CardContent className="p-6 space-y-4">
+                  {/* Quote Icon */}
+                  <Quote className="h-8 w-8 text-teal-200 -mb-2" />
+                  
+                  {/* Quote Text */}
+                  <p className="text-sm sm:text-base text-gray-600 leading-relaxed italic">
+                    "A very fast response, both the AI review and the online dermatologist put my mind at rest. Thank you."
+                  </p>
+                  
+                  {/* User Info - single flex row: avatar, name, badge */}
+                  <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 pt-4 border-t border-gray-100 min-h-[3rem]">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0" aria-hidden>
+                      <span className="text-sm sm:text-base font-semibold text-purple-700">CH</span>
+                    </div>
+                    <p className="text-sm sm:text-base font-medium text-gray-900 whitespace-nowrap flex-shrink-0 ">Ms Chloe</p>
+                    <span className="inline-flex flex-shrink-0 items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 whitespace-nowrap ml-auto">
+                      Fast reassurance
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+            
+            {/* Disclosure */}
+            <p className="text-xs sm:text-sm text-gray-500 max-w-2xl mx-auto pt-4">
+              Individual experiences vary. SkinWise is not a substitute for professional medical diagnosis.
+            </p>
           </div>
         </div>
       </section>
@@ -594,6 +713,7 @@ export default function LandingPage() {
                 <li><Link href="/login" className="hover:text-white transition-colors break-words hyphens-auto">Skin Assessment</Link></li>
                 <li><Link href="#how-it-works" className="hover:text-white transition-colors break-words hyphens-auto">How It Works</Link></li>
                 <li><Link href="#faq" className="hover:text-white transition-colors break-words hyphens-auto">FAQ</Link></li>
+                <li><Link href="#testimonials" className="hover:text-white transition-colors break-words hyphens-auto">Testimonials</Link></li>
               </ul>
             </div>
             
@@ -615,7 +735,7 @@ export default function LandingPage() {
           
           <div className="border-t border-gray-800 mt-8 pt-8 text-center">
             <p className="text-xs sm:text-sm text-gray-400 break-words hyphens-auto">
-              © 2025 SkinWise. All rights reserved. Professional medical advice should always be sought for serious concerns.
+              © SkinWiseapp 2026. All rights reserved. Professional medical advice should always be sought for serious concerns.
             </p>
           </div>
         </div>

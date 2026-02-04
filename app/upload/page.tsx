@@ -8,11 +8,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useAuth } from '@/components/providers/auth-provider'
-import { Heart, Upload, X, Mic, FileText, Camera, AlertCircle } from "lucide-react"
+import { Heart, Upload, X, FileText, Camera, AlertCircle, CheckCircle, Mail, LogOut } from "lucide-react"
 import Link from "next/link"
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { auth, storage, firestore } from '@/firebase'
+import { signOut } from 'firebase/auth'
 import { formatFileSize } from '@/lib/utils'
 import { detectUserCurrency, formatPrice, getUserCurrencyFromLocale, type SupportedCurrency } from '@/lib/currency'
 import { validateFiles, logFileUploadAttempt, createSecureUploadPath } from '@/lib/file-validation'
@@ -31,11 +32,23 @@ export default function UploadPage() {
   const [files, setFiles] = useState<UploadedFile[]>([])
   const [textDescription, setTextDescription] = useState('')
 
+  // Structured questionnaire state
+  const [symptomTypes, setSymptomTypes] = useState<string[]>([])
+  const [bodyLocation, setBodyLocation] = useState('')
   const [symptomDuration, setSymptomDuration] = useState('')
+  const [changeOverTime, setChangeOverTime] = useState('')
+  const [redFlags, setRedFlags] = useState<Record<string, boolean>>({
+    bleeding: false,
+    rapidGrowth: false,
+    fever: false,
+    spreadingFast: false,
+    severeItchPain: false,
+  })
   const [productUsage, setProductUsage] = useState('')
-  const [recentChanges, setRecentChanges] = useState('')
+  const [lifestyleTriggers, setLifestyleTriggers] = useState<string[]>([])
+  const [lifestyleNotes, setLifestyleNotes] = useState('')
+  const [guestEmail, setGuestEmail] = useState('')
   const [uploading, setUploading] = useState(false)
-  const [isRecording, setIsRecording] = useState(false)
   const [userCurrency, setUserCurrency] = useState<SupportedCurrency>('USD')
   const [currencyLoading, setCurrencyLoading] = useState(true)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -69,14 +82,19 @@ export default function UploadPage() {
     if (typeof window !== 'undefined') {
       const state = {
         textDescription,
+        symptomTypes,
+        bodyLocation,
         symptomDuration,
+        changeOverTime,
+        redFlags,
         productUsage,
-        recentChanges,
+        lifestyleTriggers,
+        lifestyleNotes,
         timestamp: Date.now()
       }
       localStorage.setItem('uploadState', JSON.stringify(state))
     }
-  }, [textDescription, symptomDuration, productUsage, recentChanges])
+  }, [textDescription, symptomTypes, bodyLocation, symptomDuration, changeOverTime, redFlags, productUsage, lifestyleTriggers, lifestyleNotes])
 
   // Load state from localStorage
   const loadStateFromStorage = useCallback(() => {
@@ -88,9 +106,14 @@ export default function UploadPage() {
           // Only restore if less than 1 hour old
           if (Date.now() - state.timestamp < 3600000) {
             setTextDescription(state.textDescription || '')
+            setSymptomTypes(state.symptomTypes || [])
+            setBodyLocation(state.bodyLocation || '')
             setSymptomDuration(state.symptomDuration || '')
+            setChangeOverTime(state.changeOverTime || '')
+            setRedFlags(state.redFlags || { bleeding: false, rapidGrowth: false, fever: false, spreadingFast: false, severeItchPain: false })
             setProductUsage(state.productUsage || '')
-            setRecentChanges(state.recentChanges || '')
+            setLifestyleTriggers(state.lifestyleTriggers || [])
+            setLifestyleNotes(state.lifestyleNotes || '')
           }
         } catch (error) {
           console.warn('Failed to restore upload state:', error)
@@ -139,6 +162,30 @@ export default function UploadPage() {
       setCurrencyLoading(false)
     })
   }, [])
+
+  // Helper: Check if user is anonymous (guest)
+  const isAnonymousUser = user?.isAnonymous === true
+  
+  // Helper: Get the email to use for reports
+  const getReportEmail = (): string => {
+    if (user?.email) return user.email.toLowerCase()
+    if (isAnonymousUser && guestEmail) return guestEmail.toLowerCase()
+    return ''
+  }
+  
+  // Helper: Validate email format
+  const isValidEmail = (email: string): boolean => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+  }
+  
+  // Helper: Check if form can be submitted
+  const canSubmit = (): boolean => {
+    if (files.length === 0) return false
+    if (uploading) return false
+    // If anonymous, require valid email
+    if (isAnonymousUser && !isValidEmail(guestEmail)) return false
+    return true
+  }
 
   // Show loading if no user yet
   if (!user) {
@@ -367,13 +414,22 @@ export default function UploadPage() {
       console.log('Files uploaded successfully:', uploadedUrls.length, 'files')
       
       // Create assessment document in Firestore with enhanced security
+      const reportEmail = getReportEmail()
       const assessmentData = {
-        email: user.email?.toLowerCase() || '', // Use authenticated user's email
+        email: reportEmail, // Email for sending reports
+        reportEmail: reportEmail, // Explicit field for clarity
+        isAnonymous: isAnonymousUser,
         timestamp: serverTimestamp(),
-        description: textDescription.trim().substring(0, 2000), // Limit description length
+        // Structured questionnaire data
+        symptomTypes: symptomTypes,
+        bodyLocation: bodyLocation.trim().substring(0, 100),
         duration: symptomDuration.trim().substring(0, 100),
-        products: productUsage.trim().substring(0, 200),
-        lifestyleChanges: recentChanges.trim().substring(0, 200),
+        changeOverTime: changeOverTime.trim().substring(0, 100),
+        redFlags: redFlags,
+        products: productUsage.trim().substring(0, 120),
+        lifestyleTriggers: lifestyleTriggers,
+        lifestyleNotes: lifestyleNotes.trim().substring(0, 200),
+        additionalNotes: textDescription.trim().substring(0, 500),
         files: uploadedUrls,
         userId: user.uid,
         status: 'pending_payment',
@@ -434,17 +490,32 @@ export default function UploadPage() {
       setUploading(false)
       
       // User-friendly error messages
-      if (error.code === 'storage/unauthorized') {
-        alert('Authentication error. Please log in again and try uploading.')
+      if (error.code === 'storage/unauthorized' || error.code === 'storage/unauthenticated') {
+        alert('Permission denied. Please log in with Google instead of guest checkout, or contact support.')
+        router.push('/login')
+      } else if (error.code === 'permission-denied' || error.message.includes('permission')) {
+        alert('Firebase permission denied. Guest checkout may not be enabled. Please try logging in with Google.')
         router.push('/login')
       } else if (error.code === 'storage/quota-exceeded') {
         alert('Storage quota exceeded. Please try again later or contact support.')
       } else if (error.message.includes('network')) {
         alert('Network error. Please check your internet connection and try again.')
+      } else if (error.message.includes('timed out') || error.message.includes('timeout')) {
+        alert('Upload timed out. This may be a permissions issue. Please try logging in with Google instead of guest checkout.')
       } else {
-        alert('Upload failed. Please try again or contact support if the problem persists.')
+        alert(`Upload failed: ${error.message || 'Unknown error'}. Please try again or contact support.`)
       }
     }
+  }
+
+  // Helper: Add timeout to promises
+  const withTimeout = <T,>(promise: Promise<T>, timeoutMs: number, errorMessage: string): Promise<T> => {
+    return Promise.race([
+      promise,
+      new Promise<T>((_, reject) => 
+        setTimeout(() => reject(new Error(errorMessage)), timeoutMs)
+      )
+    ])
   }
 
   // Enhanced secure file upload function
@@ -456,6 +527,7 @@ export default function UploadPage() {
     const uploadedUrls: string[] = []
     
     console.log(`🔒 Starting secure upload of ${files.length} files`)
+    console.log(`🔒 User type: ${user.isAnonymous ? 'Anonymous/Guest' : 'Authenticated'}`)
     
     for (let i = 0; i < files.length; i++) {
       const fileData = files[i]
@@ -481,10 +553,22 @@ export default function UploadPage() {
           }
         }
         
-        const snapshot = await uploadBytes(storageRef, fileData.file, metadata)
-        console.log(`File ${i + 1} uploaded successfully, getting download URL...`)
+        console.log(`📤 Starting uploadBytes for file ${i + 1}...`)
+        console.log(`📤 File details: size=${fileData.file.size}, type=${fileData.file.type}`)
         
-        const downloadURL = await getDownloadURL(snapshot.ref)
+        // Add 30 second timeout to upload
+        const snapshot = await withTimeout(
+          uploadBytes(storageRef, fileData.file, metadata),
+          30000,
+          'Upload timed out after 30 seconds. Please check your connection and Firebase Storage permissions.'
+        )
+        console.log(`✅ File ${i + 1} uploadBytes completed, getting download URL...`)
+        
+        const downloadURL = await withTimeout(
+          getDownloadURL(snapshot.ref),
+          10000,
+          'Failed to get download URL. Please try again.'
+        )
         uploadedUrls.push(downloadURL)
         
         console.log(`✅ File ${i + 1} complete: ${downloadURL.substring(0, 50)}...`)
@@ -498,16 +582,6 @@ export default function UploadPage() {
     return uploadedUrls
   }
 
-  const startRecording = () => {
-    // Voice recording implementation would go here
-    setIsRecording(true)
-    // For now, just simulate recording
-    setTimeout(() => {
-      setIsRecording(false)
-      setTextDescription(prev => prev + ' [Voice note recorded]')
-    }, 3000)
-  }
-
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
@@ -519,8 +593,22 @@ export default function UploadPage() {
             className="h-8 sm:h-10 w-auto"
           />
         </Link>
-        <div className="ml-auto text-xs sm:text-sm text-slate-600 truncate max-w-[120px] sm:max-w-none">
-          {user.email || 'No email'}
+        <div className="ml-auto flex items-center space-x-3">
+          <span className="text-xs sm:text-sm text-slate-600 truncate max-w-[120px] sm:max-w-none">
+            {user.email ? user.email : (isAnonymousUser ? 'Guest' : 'No email')}
+          </span>
+          <button
+            onClick={async () => {
+              if (auth) {
+                await signOut(auth)
+                router.push('/login')
+              }
+            }}
+            className="text-xs sm:text-sm text-slate-500 hover:text-slate-700 flex items-center"
+          >
+            <LogOut className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+            <span className="hidden sm:inline">Logout</span>
+          </button>
         </div>
       </header>
 
@@ -535,6 +623,39 @@ export default function UploadPage() {
               Share 1-4 clear photos of your skin concern for professional analysis
             </p>
           </div>
+
+          {/* What You Get - Pricing Expectation Block */}
+          <Card className="border-slate-200 bg-white shadow-sm">
+            <CardContent className="pt-4 pb-4 sm:pt-5 sm:pb-5">
+              <div className="space-y-3">
+                {/* Included Today */}
+                <div>
+                  <h3 className="text-sm sm:text-base font-semibold text-slate-900 flex items-center">
+                    <CheckCircle className="w-4 h-4 text-teal-600 mr-2 flex-shrink-0" />
+                    Included today (£6): Same-day AI + human review
+                  </h3>
+                  <ul className="mt-2 ml-6 space-y-1 text-xs sm:text-sm text-slate-600">
+                    <li>• Plain-English summary of what your photos most likely show (and what it may not be)</li>
+                    <li>• Actionable next steps (skincare, hygiene, triggers, lifestyle) + when to seek urgent care</li>
+                    <li>• Clinician-style note you can share with your doctor or dermatologist</li>
+                  </ul>
+                </div>
+                
+                {/* Optional Upgrade */}
+                <div className="pt-2 border-t border-slate-100">
+                  <h4 className="text-xs sm:text-sm font-medium text-slate-700">
+                    Optional upgrade after results (typically ~£25): Dermatologist review
+                  </h4>
+                  <ul className="mt-1 ml-0 space-y-0.5 text-xs text-slate-500">
+                    <li>• Dermatologist reviews your case and refines the assessment</li>
+                    <li>• Updated plain-English plan + more detailed clinician letter</li>
+                    <li>• Guidance on what to ask for next (prescriptions / referral), where appropriate</li>
+                    <li>• Decide later: No payment is taken now, and charges only apply if you opt-in for this review.</li>
+                  </ul>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Photo Upload */}
           <Card className="medical-card">
@@ -592,7 +713,7 @@ export default function UploadPage() {
                         Drag & drop photos here, or click to select
                       </p>
                       <p className="text-xs text-slate-500">
-                        JPEG, PNG, WebP • Max 10MB each • Up to 4 photos
+                        JPEG, PNG, WebP • Max 10MB each • <strong>Up to 4 photos</strong>
                       </p>
                     </div>
                   )}
@@ -653,104 +774,305 @@ export default function UploadPage() {
             </CardContent>
           </Card>
 
-          {/* Description */}
+          {/* Structured Questionnaire */}
           <Card className="medical-card">
             <CardHeader className="pb-3 sm:pb-6">
               <CardTitle className="flex items-center space-x-2 text-base sm:text-lg">
                 <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span>Additional Information</span>
+                <span>About Your Skin Concern</span>
               </CardTitle>
               <CardDescription className="text-xs sm:text-sm">
-                Help us understand your skin concern better (optional but recommended)
+                Quick questions to help our team provide accurate guidance (2-3 min)
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3 sm:space-y-4">
+            <CardContent className="space-y-5 sm:space-y-6">
+              
+              {/* 1. Symptom Type - Multi-select chips */}
               <div className="space-y-2">
-                <Label htmlFor="description" className="font-semibold text-sm sm:text-base">Description</Label>
-                <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-                  <textarea
-                    id="description"
-                    value={textDescription}
-                    onChange={(e) => setTextDescription(e.target.value)}
-                    placeholder="Describe your skin concern, symptoms, pain level, or any other relevant details..."
-                    className="flex-1 min-h-[100px] w-full rounded-md border-2 border-slate-500 bg-white px-3 py-2 text-sm font-medium placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue focus-visible:border-brand-blue focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 shadow-sm"
-                  />
-                  <Button
-                    onClick={startRecording}
-                    disabled={isRecording}
-                    variant="outline"
-                    size="icon"
-                    className="shrink-0 self-start sm:self-auto"
-                  >
-                    <Mic className={`w-4 h-4 ${isRecording ? 'text-red-500' : ''}`} />
-                  </Button>
+                <Label className="font-semibold text-sm sm:text-base">What are you experiencing? <span className="text-slate-500 font-normal">(select all that apply)</span></Label>
+                <div className="flex flex-wrap gap-2">
+                  {['Rash', 'Spots/Pimples', 'Dry/Flaky', 'Itching', 'Redness', 'Swelling', 'Discolouration', 'Mole/Growth', 'Wound/Sore', 'Other'].map((symptom) => (
+                    <button
+                      key={symptom}
+                      type="button"
+                      onClick={() => {
+                        setSymptomTypes(prev => 
+                          prev.includes(symptom) 
+                            ? prev.filter(s => s !== symptom)
+                            : [...prev, symptom]
+                        )
+                      }}
+                      className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                        symptomTypes.includes(symptom)
+                          ? 'bg-teal-600 text-white'
+                          : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                      }`}
+                    >
+                      {symptom}
+                    </button>
+                  ))}
                 </div>
-                {isRecording && (
-                  <p className="text-xs sm:text-sm text-red-600">Recording... (3 seconds for demo)</p>
+              </div>
+
+              {/* 2. Body Location - Dropdown */}
+              <div className="space-y-2">
+                <Label htmlFor="bodyLocation" className="font-semibold text-sm sm:text-base">Where on your body?</Label>
+                <select
+                  id="bodyLocation"
+                  value={bodyLocation}
+                  onChange={(e) => setBodyLocation(e.target.value)}
+                  className="w-full rounded-md border-2 border-slate-300 bg-white px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                >
+                  <option value="">Select location...</option>
+                  <option value="face">Face</option>
+                  <option value="scalp">Scalp</option>
+                  <option value="neck">Neck</option>
+                  <option value="chest">Chest</option>
+                  <option value="back">Back</option>
+                  <option value="stomach">Stomach</option>
+                  <option value="arms">Arms</option>
+                  <option value="hands">Hands</option>
+                  <option value="legs">Legs</option>
+                  <option value="feet">Feet</option>
+                  <option value="groin">Groin/Private area</option>
+                  <option value="multiple">Multiple areas</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+
+              {/* 3. Duration - Dropdown */}
+              <div className="space-y-2">
+                <Label htmlFor="duration" className="font-semibold text-sm sm:text-base">How long have you had this?</Label>
+                <select
+                  id="duration"
+                  value={symptomDuration}
+                  onChange={(e) => setSymptomDuration(e.target.value)}
+                  className="w-full rounded-md border-2 border-slate-300 bg-white px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                >
+                  <option value="">Select duration...</option>
+                  <option value="today">Just today</option>
+                  <option value="few-days">A few days</option>
+                  <option value="1-week">About 1 week</option>
+                  <option value="2-4-weeks">2-4 weeks</option>
+                  <option value="1-3-months">1-3 months</option>
+                  <option value="3-6-months">3-6 months</option>
+                  <option value="6-12-months">6-12 months</option>
+                  <option value="over-1-year">Over 1 year</option>
+                  <option value="comes-goes">Comes and goes</option>
+                </select>
+              </div>
+
+              {/* 4. Change Over Time - Dropdown */}
+              <div className="space-y-2">
+                <Label htmlFor="changeOverTime" className="font-semibold text-sm sm:text-base">Has it changed over time?</Label>
+                <select
+                  id="changeOverTime"
+                  value={changeOverTime}
+                  onChange={(e) => setChangeOverTime(e.target.value)}
+                  className="w-full rounded-md border-2 border-slate-300 bg-white px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                >
+                  <option value="">Select...</option>
+                  <option value="getting-worse">Getting worse</option>
+                  <option value="getting-better">Getting better</option>
+                  <option value="staying-same">Staying the same</option>
+                  <option value="spreading">Spreading to new areas</option>
+                  <option value="changing-appearance">Changing in appearance</option>
+                  <option value="not-sure">Not sure</option>
+                </select>
+              </div>
+
+              {/* 5. Red Flag Symptoms - Yes/No toggles */}
+              <div className="space-y-3">
+                <Label className="font-semibold text-sm sm:text-base">Do you have any of these symptoms?</Label>
+                <div className="space-y-2 bg-red-50 border border-red-100 rounded-lg p-3">
+                  {[
+                    { key: 'bleeding', label: 'Bleeding or oozing' },
+                    { key: 'rapidGrowth', label: 'Rapid growth or change in size' },
+                    { key: 'fever', label: 'Fever or feeling unwell' },
+                    { key: 'spreadingFast', label: 'Spreading quickly (within hours)' },
+                    { key: 'severeItchPain', label: 'Severe pain or unbearable itching' },
+                  ].map(({ key, label }) => (
+                    <div key={key} className="flex items-center justify-between py-1">
+                      <span className="text-sm text-slate-700">{label}</span>
+                      <div className="flex items-center space-x-2">
+                        <button
+                          type="button"
+                          onClick={() => setRedFlags(prev => ({ ...prev, [key]: false }))}
+                          className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                            !redFlags[key]
+                              ? 'bg-slate-600 text-white'
+                              : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
+                          }`}
+                        >
+                          No
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setRedFlags(prev => ({ ...prev, [key]: true }))}
+                          className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                            redFlags[key]
+                              ? 'bg-red-600 text-white'
+                              : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
+                          }`}
+                        >
+                          Yes
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {Object.values(redFlags).some(v => v) && (
+                  <p className="text-xs text-red-600 flex items-center">
+                    <AlertCircle className="w-3 h-3 mr-1" />
+                    If symptoms are severe, please seek immediate medical attention
+                  </p>
                 )}
               </div>
 
-
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="duration" className="font-semibold text-sm sm:text-base">How long have you noticed this?</Label>
-                  <Input
-                    id="duration"
-                    value={symptomDuration}
-                    onChange={(e) => setSymptomDuration(e.target.value)}
-                    placeholder="e.g., 2 weeks, 3 months"
-                    className="border-2 border-slate-500 bg-white font-medium placeholder:text-slate-500 focus-visible:ring-brand-blue focus-visible:border-brand-blue shadow-sm text-sm sm:text-base"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="products" className="font-semibold text-sm sm:text-base">Current products you're using</Label>
-                  <Input
-                    id="products"
-                    value={productUsage}
-                    onChange={(e) => setProductUsage(e.target.value)}
-                    placeholder="e.g., moisturizer, cleanser, medication"
-                    className="border-2 border-slate-500 bg-white font-medium placeholder:text-slate-500 focus-visible:ring-brand-blue focus-visible:border-brand-blue shadow-sm text-sm sm:text-base"
-                  />
-                </div>
-              </div>
-
+              {/* 6. Current Products - Short text */}
               <div className="space-y-2">
-                <Label htmlFor="changes" className="font-semibold text-sm sm:text-base">Recent changes in routine, environment, or lifestyle</Label>
+                <Label htmlFor="products" className="font-semibold text-sm sm:text-base">Products currently using on this area <span className="text-slate-500 font-normal">(optional)</span></Label>
                 <Input
-                  id="changes"
-                  value={recentChanges}
-                  onChange={(e) => setRecentChanges(e.target.value)}
-                  placeholder="e.g., new products, stress, diet changes, travel"
-                  className="border-2 border-slate-500 bg-white font-medium placeholder:text-slate-500 focus-visible:ring-brand-blue focus-visible:border-brand-blue shadow-sm text-sm sm:text-base"
+                  id="products"
+                  value={productUsage}
+                  onChange={(e) => setProductUsage(e.target.value.substring(0, 120))}
+                  placeholder="e.g., moisturiser, steroid cream, cleanser"
+                  maxLength={120}
+                  className="border-2 border-slate-300 bg-white font-medium placeholder:text-slate-400 focus-visible:ring-teal-500 focus-visible:border-teal-500 text-sm"
                 />
+                <p className="text-xs text-slate-400 text-right">{productUsage.length}/120</p>
               </div>
+
+              {/* 7. Lifestyle/Trigger Changes - Chips + optional text */}
+              <div className="space-y-2">
+                <Label className="font-semibold text-sm sm:text-base">Any recent changes or triggers? <span className="text-slate-500 font-normal">(select any)</span></Label>
+                <div className="flex flex-wrap gap-2">
+                  {['New product', 'Stress', 'Diet change', 'Travel', 'Medication', 'Weather', 'Illness', 'None'].map((trigger) => (
+                    <button
+                      key={trigger}
+                      type="button"
+                      onClick={() => {
+                        setLifestyleTriggers(prev => 
+                          prev.includes(trigger) 
+                            ? prev.filter(t => t !== trigger)
+                            : [...prev, trigger]
+                        )
+                      }}
+                      className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                        lifestyleTriggers.includes(trigger)
+                          ? 'bg-teal-600 text-white'
+                          : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                      }`}
+                    >
+                      {trigger}
+                    </button>
+                  ))}
+                </div>
+                {lifestyleTriggers.length > 0 && !lifestyleTriggers.includes('None') && (
+                  <Input
+                    value={lifestyleNotes}
+                    onChange={(e) => setLifestyleNotes(e.target.value.substring(0, 100))}
+                    placeholder="Any details? (optional)"
+                    maxLength={100}
+                    className="mt-2 border-2 border-slate-300 bg-white font-medium placeholder:text-slate-400 focus-visible:ring-teal-500 focus-visible:border-teal-500 text-sm"
+                  />
+                )}
+              </div>
+
+              {/* 8. Optional Free Text - with counter */}
+              <div className="space-y-2">
+                <Label htmlFor="additionalNotes" className="font-semibold text-sm sm:text-base">Anything else we should know? <span className="text-slate-500 font-normal">(optional)</span></Label>
+                <textarea
+                  id="additionalNotes"
+                  value={textDescription}
+                  onChange={(e) => setTextDescription(e.target.value.substring(0, 500))}
+                  placeholder="Any other details, medical history, or questions..."
+                  maxLength={500}
+                  rows={3}
+                  className="w-full rounded-md border-2 border-slate-300 bg-white px-3 py-2 text-sm font-medium placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 resize-none"
+                />
+                <p className="text-xs text-slate-400 text-right">{textDescription.length}/500</p>
+              </div>
+
             </CardContent>
           </Card>
 
-          {/* Submit */}
-          <div className="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0 bg-white p-3 sm:p-4 rounded-lg border">
-            <Link href="/login" className="text-xs sm:text-sm text-brand-blue hover:underline order-2 sm:order-1">
-              ← Change account
-            </Link>
-            <Button
-              onClick={handleSubmit}
-              disabled={files.length === 0 || uploading}
-              className="bg-brand-blue hover:bg-brand-blue/90 w-full sm:w-auto order-1 sm:order-2"
-              size="lg"
-            >
-              {uploading ? (
-                <div className="flex items-center space-x-2">
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span className="text-sm sm:text-base">Uploading...</span>
+          {/* Payment Summary Box */}
+          <Card className="medical-card border-teal-200 bg-gradient-to-br from-white to-teal-50">
+            <CardContent className="pt-5 sm:pt-6 space-y-4">
+              <div className="text-center">
+                <h3 className="text-lg sm:text-xl font-semibold text-slate-900">Same-Day AI + Human Review</h3>
+              </div>
+              
+              <ul className="space-y-2 text-sm text-slate-600">
+                <li className="flex items-start space-x-2">
+                  <Heart className="w-4 h-4 text-teal-600 mt-0.5 flex-shrink-0" />
+                  <span>Your photos are encrypted and handled confidentially</span>
+                </li>
+                <li className="flex items-start space-x-2">
+                  <Heart className="w-4 h-4 text-teal-600 mt-0.5 flex-shrink-0" />
+                  <span>Results typically within 2-4 hours</span>
+                </li>
+              </ul>
+
+              {/* Email input for anonymous/guest users */}
+              {isAnonymousUser && (
+                <div className="space-y-2 pt-2 border-t border-teal-100">
+                  <Label htmlFor="guestEmail" className="text-sm font-medium text-slate-700 flex items-center">
+                    <Mail className="w-4 h-4 mr-2 text-teal-600" />
+                    Email for your results
+                  </Label>
+                  <Input
+                    id="guestEmail"
+                    type="email"
+                    value={guestEmail}
+                    onChange={(e) => setGuestEmail(e.target.value)}
+                    placeholder="your@email.com"
+                    className={`border-2 ${guestEmail && !isValidEmail(guestEmail) ? 'border-red-300' : 'border-slate-300'} bg-white font-medium placeholder:text-slate-400 focus-visible:ring-teal-500 focus-visible:border-teal-500`}
+                    required
+                  />
+                  <p className="text-xs text-slate-500">
+                    Used only to send your report and follow-up link. No marketing.
+                  </p>
+                  {guestEmail && !isValidEmail(guestEmail) && (
+                    <p className="text-xs text-red-500">Please enter a valid email address</p>
+                  )}
                 </div>
-              ) : (
-                <span className="text-sm sm:text-base">
-                  Continue to Payment ({currencyLoading ? '$19.95 USD' : formatPrice(userCurrency)})
-                </span>
               )}
-            </Button>
-          </div>
+
+              <div className="pt-2">
+                <Button
+                  onClick={handleSubmit}
+                  disabled={!canSubmit()}
+                  className="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-6 text-base sm:text-lg rounded-lg shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                  size="lg"
+                >
+                  {uploading ? (
+                    <div className="flex items-center justify-center space-x-2">
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Processing...</span>
+                    </div>
+                  ) : (
+                    <span>Continue — £6</span>
+                  )}
+                </Button>
+                <p className="text-xs text-center text-slate-500 mt-3">
+                  Dermatologist review available after results (typically £25)
+                </p>
+              </div>
+
+              {/* Auth status display */}
+              <div className="text-center pt-2 space-y-1">
+                {user?.email ? (
+                  <p className="text-xs text-slate-600">
+                    Signed in as <span className="font-medium">{user.email}</span>
+                  </p>
+                ) : isAnonymousUser ? (
+                  <p className="text-xs text-slate-500">Guest checkout</p>
+                ) : null}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
 

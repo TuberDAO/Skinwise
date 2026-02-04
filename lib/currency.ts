@@ -14,8 +14,9 @@ export const SUPPORTED_CURRENCIES = {
 
 export type SupportedCurrency = keyof typeof SUPPORTED_CURRENCIES
 
-export const BASE_PRICE_USD = 19.95
-export const DERMATOLOGIST_PRICE_GBP = 110.00
+// Base prices in GBP (primary currency)
+export const BASE_PRICE_GBP = 6.00
+export const DERMATOLOGIST_PRICE_GBP = 25.00
 
 // IP-based currency detection with browser locale fallback
 export const detectUserCurrency = async (): Promise<SupportedCurrency> => {
@@ -153,10 +154,20 @@ export const detectUserCurrency = async (): Promise<SupportedCurrency> => {
   }
 }
 
-// Convert price to user's currency
+// Convert price to user's currency (base price is £6 GBP)
 export function convertPrice(currency: SupportedCurrency): { amount: number, cents: number, symbol: string } {
   const currencyInfo = SUPPORTED_CURRENCIES[currency]
-  const convertedAmount = BASE_PRICE_USD * currencyInfo.rate
+  const gbpRate = SUPPORTED_CURRENCIES['GBP'].rate
+  
+  // Convert from GBP base price to the target currency
+  let convertedAmount: number
+  if (currency === 'GBP') {
+    convertedAmount = BASE_PRICE_GBP
+  } else {
+    // Convert GBP to USD first, then to target currency
+    const usdAmount = BASE_PRICE_GBP / gbpRate
+    convertedAmount = usdAmount * currencyInfo.rate
+  }
   
   // For non-US currencies, round up to whole numbers
   let amount: number
@@ -164,6 +175,8 @@ export function convertPrice(currency: SupportedCurrency): { amount: number, cen
     amount = Math.round(convertedAmount * 100) / 100
   } else if (currency === 'JPY') {
     amount = Math.ceil(convertedAmount) // JPY already has no decimals, just round up
+  } else if (currency === 'GBP') {
+    amount = BASE_PRICE_GBP // Keep original GBP price
   } else {
     amount = Math.ceil(convertedAmount) // Round up to next whole number for all other currencies
   }
@@ -221,6 +234,8 @@ export function formatPrice(currency: SupportedCurrency): string {
     return `${symbol}${amount.toFixed(2)}`
   } else if (currency === 'JPY') {
     return `${symbol}${amount.toLocaleString()}`
+  } else if (currency === 'GBP') {
+    return `${symbol}${Math.round(amount)}` // £6 format
   } else {
     return `${symbol}${amount}` // No decimals for non-US currencies (already rounded up)
   }

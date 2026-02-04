@@ -3,10 +3,14 @@
 import { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { CheckCircle, Home, Calendar, Download, Shield } from "lucide-react"
+import { CheckCircle, Home, Calendar, Download, Shield, LogOut } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from 'next/navigation'
+import { auth } from '@/firebase'
+import { signOut } from 'firebase/auth'
 
 export default function SuccessPage() {
+  const router = useRouter()
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [userEmail, setUserEmail] = useState<string>('User')
   const [isLoaded, setIsLoaded] = useState(false)
@@ -120,8 +124,22 @@ export default function SuccessPage() {
             className="h-10 w-auto"
           />
         </Link>
-        <div className="ml-auto text-sm text-slate-600">
-          {userEmail}
+        <div className="ml-auto flex items-center space-x-3">
+          <span className="text-sm text-slate-600">
+            {userEmail}
+          </span>
+          <button
+            onClick={async () => {
+              if (auth) {
+                await signOut(auth)
+                router.push('/login')
+              }
+            }}
+            className="text-sm text-slate-500 hover:text-slate-700 flex items-center"
+          >
+            <LogOut className="w-4 h-4 mr-1" />
+            Logout
+          </button>
         </div>
       </header>
 
@@ -137,12 +155,12 @@ export default function SuccessPage() {
             
             {/* Large Headline */}
             <h1 className="text-4xl md:text-5xl font-bold text-slate-900 leading-tight">
-              Thank you — your skin concern has been submitted.
+              Thank you, your skin concern has been submitted successfully.
             </h1>
             
             {/* Medium Subheadline */}
             <p className="text-xl md:text-2xl text-slate-700 leading-relaxed max-w-3xl mx-auto">
-              We're preparing your AI-assisted analysis and referral.
+              We're preparing your detailed analysis.
             </p>
           </div>
 
@@ -153,7 +171,7 @@ export default function SuccessPage() {
               {/* Body Text */}
               <div className="space-y-6 text-lg text-slate-700 leading-relaxed">
                 <p>
-                  We've received your photos and description, and your submission is now being reviewed. We'll generate a preliminary analysis.
+                  We've received your photos and description, your submission will now be examined. We'll send you a thorough analysis.
                 </p>
                 
                 <p className="font-semibold">
@@ -164,7 +182,7 @@ export default function SuccessPage() {
                 <div className="bg-blue-50 border-l-4 border-blue-400 p-6 rounded-r-lg">
                   <div className="space-y-3 text-blue-900">
                     <p>
-                      <strong>A downloadable PDF in plain English</strong> of the preliminary assessment & a referral letter for your dermatologist.
+                      <strong>A downloadable PDF in plain English</strong> of the preliminary assessment & a letter for your dermatologist or Doctor.
                     </p>
                     <p>
                       <strong>Option to submit your case anonymously</strong> for detailed examination by a Certified Dermatologist.
@@ -175,7 +193,7 @@ export default function SuccessPage() {
                 {/* Timing */}
                 <div className="text-center bg-orange-50 border border-orange-200 rounded-lg p-4 text-orange-800">
                   <p className="font-semibold">
-                    ⏰ <strong>When?</strong> Within 24 hours — often sooner.
+                    ⏰ <strong>When?</strong> Within 2-4 hours, often sooner, latest 24hrs.
                   </p>
                 </div>
                 
@@ -214,11 +232,6 @@ export default function SuccessPage() {
                     </Button>
                   </Link>
                 </div>
-                
-                {/* Optional note under Schedule button */}
-                <p className="text-center text-sm text-slate-600 max-w-2xl mx-auto">
-                  <em>We can also arrange an anonymous examination of your case after your preliminary report is delivered.</em>
-                </p>
               </div>
 
             </CardContent>

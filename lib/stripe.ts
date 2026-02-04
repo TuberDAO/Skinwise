@@ -11,5 +11,6 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',
 })
 
-export const ASSESSMENT_PRICE = 19.95 // USD
-export const ASSESSMENT_PRICE_CENTS = Math.round(ASSESSMENT_PRICE * 100) 
+// Base price in GBP - actual price conversion happens in currency.ts
+export const ASSESSMENT_PRICE_GBP = 6.00
+export const ASSESSMENT_PRICE_CENTS_GBP = Math.round(ASSESSMENT_PRICE_GBP * 100) 
