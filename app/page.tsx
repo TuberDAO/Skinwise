@@ -168,114 +168,115 @@ export default function LandingPage() {
         )}
       </header>
 
-      {/* Hero Section - Improved Mobile Responsive */}
+      {/* Hero Section - Trust-Forward, Clinical */}
       <section className="bg-gradient-to-br from-slate-50 via-white to-teal-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
-          <div className="text-center space-y-6 sm:space-y-8">
-            {/* How to Use Graphic - Enhanced Mobile Hero */}
-            <div className="w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-0">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-5 lg:py-8">
+          <div className="text-center space-y-3 sm:space-y-4">
+            {/* How to Use Graphic - Compact */}
+            <div className="w-full max-w-xs sm:max-w-sm md:max-w-lg lg:max-w-xl mx-auto px-2 sm:px-0">
               <img 
                 src="/how-to-use-skinwise.png" 
-                alt="How to use SkinWise - Take a photo, Send securely, AI-assisted results in 24 hours" 
-                className="w-full h-auto object-contain max-h-48 sm:max-h-56 md:max-h-64 lg:max-h-80 xl:max-h-96 drop-shadow-lg"
+                alt="How to use SkinWise - Take a photo, Send securely, results reviewed by a human" 
+                className="w-full h-auto object-contain max-h-32 sm:max-h-40 md:max-h-48 lg:max-h-56 xl:max-h-64 drop-shadow-lg"
               />
             </div>
 
-            {/* Headlines - Better responsive text sizing */}
-            <div className="space-y-3 sm:space-y-4 max-w-4xl mx-auto">
+            {/* Headlines - Trust-forward, clinical */}
+            <div className="space-y-1 sm:space-y-2 max-w-4xl mx-auto">
               <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900 leading-tight">
-                Concerned About a{" "}
-                <span className="text-teal-700">Skin Change</span>?
+                Fast skin photo assessment:{" "}
+                <span className="text-teal-700">reviewed by a human</span>
               </h1>
-              <h2 className="text-sm sm:text-base md:text-lg lg:text-xl font-medium text-gray-700 leading-relaxed">
-                Get Professional Assessment for Rashes, Moles, Lesions & Discoloration
+              <h2 className="text-xs sm:text-sm md:text-base lg:text-lg text-gray-700 leading-relaxed max-w-2xl mx-auto">
+                Upload 1 to 4 photos and a short description. We'll send a clear summary + a doctor-friendly note if needed.
               </h2>
             </div>
 
-            {/* Description */}
-            <p className="text-sm sm:text-base md:text-lg text-gray-600 leading-relaxed max-w-2xl mx-auto">
-              AI-assisted analysis reviewed by healthcare professionals. We focus on assessment of 
-              skin concerns & ethical guidance not cosmetic product sales.
+            {/* AI mention - demoted to secondary text */}
+            <p className="text-xs text-gray-500 max-w-xl mx-auto">
+              AI-assisted triage, then checked by a trained reviewer for clarity and safety.
             </p>
 
-            {/* Key Points - Better Mobile Layout */}
-            <div className="flex flex-col sm:flex-row sm:justify-center sm:flex-wrap gap-3 sm:gap-4 lg:gap-6 max-w-4xl mx-auto">
-              <div className="flex items-center justify-center space-x-2 text-sm sm:text-base text-gray-600 py-2 px-3">
-                <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-teal-600 flex-shrink-0" />
-                <span className="whitespace-nowrap">2-4 hour analysis</span>
-              </div>
-              <div className="flex items-center justify-center space-x-2 text-sm sm:text-base text-gray-600 py-2 px-3">
-                <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-teal-600 flex-shrink-0" />
-                <span className="whitespace-nowrap">Professional review</span>
-              </div>
-              <div className="flex items-center justify-center space-x-2 text-sm sm:text-base text-gray-600 py-2 px-3">
-                <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-teal-600 flex-shrink-0" />
-                <span className="whitespace-nowrap">Ethical guidance only</span>
-              </div>
-            </div>
-
-            {/* CTA Button */}
-            <div className="max-w-sm mx-auto space-y-3">
-              <p className="text-xs sm:text-sm text-gray-600 text-center">
-                ({currencyLoading ? '£6' : formatPrice(userCurrency)} for the initial detailed review)
-              </p>
+            {/* CTA Button - Compact */}
+            <div className="max-w-sm mx-auto space-y-1.5">
               <Link href="/login">
-                <Button className="w-full bg-teal-700 hover:bg-teal-800 text-white text-sm sm:text-base md:text-lg py-3 sm:py-4 px-6 shadow-lg transition-colors">
+                <Button className="w-full bg-teal-700 hover:bg-teal-800 text-white text-sm sm:text-base py-2.5 sm:py-3 px-6 shadow-lg transition-colors">
                   Start Skin Assessment
                 </Button>
               </Link>
-              <p className="text-xs sm:text-sm text-gray-500 px-2">
-                Secure assessment • Results within 2-4 hours
+              <p className="text-xs sm:text-sm text-gray-600 text-center">
+                {currencyLoading ? '£6' : formatPrice(userCurrency)} • Results in 2 to 4 hours
               </p>
               <Link 
                 href="#testimonials" 
-                className="inline-block text-xs sm:text-sm text-teal-700 hover:text-teal-800 underline underline-offset-2 transition-colors"
+                className="inline-block text-xs text-teal-700 hover:text-teal-800 underline underline-offset-2 transition-colors"
               >
                 See testimonials
               </Link>
-            </div>
-
-            {/* Trust Indicators */}
-            <div className="flex flex-col sm:flex-row sm:justify-center sm:flex-wrap gap-3 sm:gap-4 lg:gap-6 max-w-3xl mx-auto pt-4">
-              <div className="flex items-center justify-center space-x-2 text-sm text-gray-700 py-2 px-3">
-                <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-teal-600 flex-shrink-0" />
-                <span className="font-medium whitespace-nowrap">Private & Secure</span>
-              </div>
-              <div className="flex items-center justify-center space-x-2 text-sm text-gray-700 py-2 px-3">
-                <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-teal-600 flex-shrink-0" />
-                <span className="font-medium whitespace-nowrap">No Product Partnerships</span>
-              </div>
-              <div className="flex items-center justify-center space-x-2 text-sm text-gray-700 py-2 px-3">
-                <UserCheck className="h-4 w-4 sm:h-5 sm:w-5 text-teal-600 flex-shrink-0" />
-                <span className="font-medium whitespace-nowrap">Reviewed by Professionals</span>
-              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* AI Analysis Section - Fixed Mobile Layout */}
+      {/* Trust Bar - Compact grid of trust signals */}
+      <section className="bg-slate-50 border-y border-slate-200">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+            <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-700">
+              <Shield className="h-4 w-4 text-teal-600 flex-shrink-0" />
+              <span>Private photo handling</span>
+            </div>
+            <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-700">
+              <CheckCircle className="h-4 w-4 text-teal-600 flex-shrink-0" />
+              <span>2 to 4 hours typical</span>
+            </div>
+            <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-700">
+              <UserCheck className="h-4 w-4 text-teal-600 flex-shrink-0" />
+              <span>Anonymous option</span>
+            </div>
+            <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-700">
+              <Stethoscope className="h-4 w-4 text-teal-600 flex-shrink-0" />
+              <span>Clear next steps + referral letter</span>
+            </div>
+            <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-700 col-span-2 sm:col-span-1">
+              <CheckCircle className="h-4 w-4 text-teal-600 flex-shrink-0" />
+              <span>No cosmetic upselling</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Clinical Safety Note - Calm, subtle */}
+      <section className="bg-amber-50 border-b border-amber-200">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-3">
+          <p className="text-xs sm:text-sm text-amber-800 text-center">
+            <span className="font-medium">Not for emergencies.</span> If symptoms are severe or rapidly worsening, seek urgent medical care.
+          </p>
+        </div>
+      </section>
+
+      {/* Skin Assessment Section - Human-first positioning */}
       <section className="bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
-          <div className="text-center space-y-8 sm:space-y-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 lg:py-16">
+          <div className="text-center space-y-6 sm:space-y-8">
             {/* Headlines */}
             <div className="space-y-3 sm:space-y-4 max-w-4xl mx-auto">
               <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900">
-                AI-Assisted Skin Analysis
+                Professional Skin Assessment
               </h2>
-              <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl font-medium text-gray-700">
+              <h3 className="text-base sm:text-lg md:text-xl text-gray-700">
                 Concerned About a Skin Change?
               </h3>
               <p className="text-sm sm:text-base md:text-lg text-gray-600 leading-relaxed">
-                Get a professional AI-powered assessment for rashes, moles, lesions, discoloration or any other skin issue.
+                Get a detailed assessment for rashes, moles, lesions, discoloration or any other skin issue: reviewed by a trained professional.
               </p>
             </div>
 
             {/* Description */}
             <p className="text-sm sm:text-base text-gray-600 leading-relaxed max-w-3xl mx-auto">
-              Our AI-assisted analysis is built to identify potential medical concerns. For added peace of mind, 
-              you can opt to have your case reviewed by a licensed online dermatologist. We offer ethical 
-              guidance; no cosmetic upselling, ever. This service is for over 18's only.
+              Our assessment process uses AI to assist with initial triage, but every case is checked by a trained reviewer. 
+              For added peace of mind, you can opt to have your case reviewed by a licensed dermatologist. 
+              We offer ethical guidance: no cosmetic upselling, ever. This service is for over 18s only.
             </p>
 
             {/* Features Grid - Better Mobile Layout */}
@@ -285,7 +286,7 @@ export default function LandingPage() {
                   <CheckCircle className="h-8 w-8 sm:h-10 sm:w-10 text-teal-700" />
                 </div>
                 <div>
-                  <h4 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 mb-2">Results in 2-4 hours</h4>
+                  <h4 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 mb-2">Results in 2 to 4 hours</h4>
                   <p className="text-sm sm:text-base text-gray-600 leading-relaxed">Fast, reliable analysis when you need answers</p>
                 </div>
               </div>
@@ -295,8 +296,8 @@ export default function LandingPage() {
                   <Stethoscope className="h-8 w-8 sm:h-10 sm:w-10 text-teal-700" />
                 </div>
                 <div>
-                  <h4 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 mb-2">Optional professional review</h4>
-                  <p className="text-sm sm:text-base text-gray-600 leading-relaxed">Licensed dermatologist consultation available</p>
+                  <h4 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 mb-2">Optional dermatologist review</h4>
+                  <p className="text-sm sm:text-base text-gray-600 leading-relaxed">Licensed dermatologist consultation available after results</p>
                 </div>
               </div>
               
@@ -312,10 +313,10 @@ export default function LandingPage() {
             </div>
 
             {/* CTA */}
-            <div className="pt-6">
+            <div className="pt-4">
               <Link href="/login">
                 <Button className="bg-teal-700 hover:bg-teal-800 text-white px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base lg:text-lg font-medium shadow-lg transition-colors">
-                  Get Your Skin Analysis
+                  Get Your Skin Assessment
                 </Button>
               </Link>
             </div>
@@ -524,7 +525,7 @@ export default function LandingPage() {
                 },
                 {
                   q: "Can I get a certified dermatologist to review my case?",
-                  a: `Yes. After your initial results, you can request a more detailed review by a certified dermatologist for ${getDermatologistPrice()}. You'll receive an expert evaluation, clinical letter, and next steps; typically within 1–2 days.`
+                  a: `Yes. After your initial results, you can request a more detailed review by a certified dermatologist for ${getDermatologistPrice()}. You'll receive an expert evaluation, clinical letter, and next steps; typically within 1 to 2 days.`
                 },
                 {
                   q: "What kinds of skin problems can this help with?",
@@ -532,11 +533,11 @@ export default function LandingPage() {
                 },
                 {
                   q: "Is this like those instant AI skin apps?",
-                  a: "No — and that's intentional. Many apps give instant results that are often wrong. SkinWiseapp takes up to 2-4 hours because your submission is carefully evaluated using medically informed AI workflows and human review. Accuracy is our top priority. We also offer further analysis with a certified dermatologist. Also, please note, to protect your data and ensure the best results, please ensure you're using the official SkinWise app. Other apps may have similar names, but you can always identify us by our official logo and our domain: skinwiseapp.com"
+                  a: "No, and that's intentional. Many apps give instant results that are often wrong. SkinWiseapp takes up to 2-4 hours because your submission is carefully evaluated using medically informed AI workflows and human review. Accuracy is our top priority. We also offer further analysis with a certified dermatologist. Also, please note, to protect your data and ensure the best results, please ensure you're using the official SkinWise app. Other apps may have similar names, but you can always identify us by our official logo and our domain: skinwiseapp.com"
                 },
                 {
                   q: "How long does it take to get results?",
-                  a: "Your initial human reviewed AI-assisted assessment is delivered within 2-4 hours, some cases may take 24hrs but most are within a few hours. If you choose certified dermatologist review, that report usually arrives within 1–2 days."
+                  a: "Your initial human reviewed AI-assisted assessment is delivered within 2 to 4 hours, some cases may take 24hrs but most are within a few hours. If you choose certified dermatologist review, that report usually arrives within 1 to 2 days."
                 },
 
                 {

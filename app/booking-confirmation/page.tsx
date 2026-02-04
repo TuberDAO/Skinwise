@@ -109,7 +109,7 @@ export default function BookingConfirmationPage() {
                     A certified dermatologist is reviewing your submitted photos and information.
                   </p>
                   <p>
-                    <strong>No video call or appointment is required.</strong> This is an asynchronous review — you will receive a written assessment.
+                    <strong>No video call or appointment is required.</strong> This is an asynchronous review: you will receive a written assessment.
                   </p>
                 </div>
               </div>

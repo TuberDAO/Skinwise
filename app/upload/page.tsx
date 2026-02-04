@@ -57,6 +57,16 @@ export default function UploadPage() {
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
+  // Define onDrop before useDropzone (must be before the hook that uses it)
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    const newFiles: UploadedFile[] = acceptedFiles.slice(0, 4 - files.length).map(file => ({
+      id: Math.random().toString(36).substr(2, 9),
+      file,
+      preview: typeof window !== 'undefined' ? URL.createObjectURL(file) : '',
+    }))
+    setFiles(prev => [...prev, ...newFiles])
+  }, [files.length])
+
   // Dropzone configuration
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -163,6 +173,23 @@ export default function UploadPage() {
     })
   }, [])
 
+  // Camera capture handler - MUST be before any early returns
+  const handleCameraCapture = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const capturedFiles = event.target.files
+    if (capturedFiles && capturedFiles.length > 0) {
+      const newFiles: UploadedFile[] = Array.from(capturedFiles).slice(0, 4 - files.length).map(file => ({
+        id: Math.random().toString(36).substr(2, 9),
+        file,
+        preview: typeof window !== 'undefined' ? URL.createObjectURL(file) : '',
+      }))
+      setFiles(prev => [...prev, ...newFiles])
+    }
+    // Reset the input value so the same photo can be taken again if needed
+    if (event.target) {
+      event.target.value = ''
+    }
+  }, [files.length])
+
   // Helper: Check if user is anonymous (guest)
   const isAnonymousUser = user?.isAnonymous === true
   
@@ -189,34 +216,8 @@ export default function UploadPage() {
 
   // Show loading if no user yet
   if (!user) {
-    return <div>Loading...</div>
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>
   }
-
-  function onDrop(acceptedFiles: File[]) {
-    const newFiles: UploadedFile[] = acceptedFiles.slice(0, 4 - files.length).map(file => ({
-      id: Math.random().toString(36).substr(2, 9),
-      file,
-      preview: typeof window !== 'undefined' ? URL.createObjectURL(file) : '',
-    }))
-    setFiles(prev => [...prev, ...newFiles])
-  }
-
-  // Camera capture handler
-  const handleCameraCapture = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const capturedFiles = event.target.files
-    if (capturedFiles && capturedFiles.length > 0) {
-      const newFiles: UploadedFile[] = Array.from(capturedFiles).slice(0, 4 - files.length).map(file => ({
-        id: Math.random().toString(36).substr(2, 9),
-        file,
-        preview: typeof window !== 'undefined' ? URL.createObjectURL(file) : '',
-      }))
-      setFiles(prev => [...prev, ...newFiles])
-    }
-    // Reset the input value so the same photo can be taken again if needed
-    if (event.target) {
-      event.target.value = ''
-    }
-  }, [files.length])
 
   // Check if device is mobile
   const isMobile = () => {
@@ -600,8 +601,14 @@ export default function UploadPage() {
           <button
             onClick={async () => {
               if (auth) {
-                await signOut(auth)
-                router.push('/login')
+                try {
+                  await signOut(auth)
+                  // Use window.location for immediate redirect to avoid React re-render issues
+                  window.location.href = '/login'
+                } catch (error) {
+                  console.error('Logout failed:', error)
+                  window.location.href = '/login'
+                }
               }
             }}
             className="text-xs sm:text-sm text-slate-500 hover:text-slate-700 flex items-center"
@@ -1053,7 +1060,7 @@ export default function UploadPage() {
                       <span>Processing...</span>
                     </div>
                   ) : (
-                    <span>Continue — £6</span>
+                    <span>Continue: £6</span>
                   )}
                 </Button>
                 <p className="text-xs text-center text-slate-500 mt-3">

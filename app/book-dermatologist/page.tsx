@@ -150,8 +150,13 @@ export default function DermatologistReviewPage() {
               <button
                 onClick={async () => {
                   if (auth) {
-                    await signOut(auth)
-                    router.push('/login')
+                    try {
+                      await signOut(auth)
+                      window.location.href = '/login'
+                    } catch (error) {
+                      console.error('Logout failed:', error)
+                      window.location.href = '/login'
+                    }
                   }
                 }}
                 className="text-sm text-gray-500 hover:text-gray-700 flex items-center"
@@ -174,7 +179,7 @@ export default function DermatologistReviewPage() {
           </h1>
           <p className="text-base sm:text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
             A certified dermatologist will examine your preliminary report, photos and case details. 
-            No live call required — just expert answers within 48-72 hours.
+            No live call required: just expert answers within 48-72 hours.
           </p>
         </div>
 
@@ -199,7 +204,7 @@ export default function DermatologistReviewPage() {
                 <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
                   <Shield className="h-6 w-6 text-purple-600" />
                 </div>
-                <p className="text-sm font-medium text-gray-900">Private and secure — no ID or video call needed</p>
+                <p className="text-sm font-medium text-gray-900">Private and secure: no ID or video call needed</p>
               </div>
             </div>
           </CardContent>

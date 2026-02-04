@@ -131,8 +131,13 @@ export default function SuccessPage() {
           <button
             onClick={async () => {
               if (auth) {
-                await signOut(auth)
-                router.push('/login')
+                try {
+                  await signOut(auth)
+                  window.location.href = '/login'
+                } catch (error) {
+                  console.error('Logout failed:', error)
+                  window.location.href = '/login'
+                }
               }
             }}
             className="text-sm text-slate-500 hover:text-slate-700 flex items-center"
