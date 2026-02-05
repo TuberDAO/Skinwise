@@ -206,11 +206,11 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-5 lg:py-8">
           <div className="text-center space-y-3 sm:space-y-4">
             {/* How to Use Graphic - Compact */}
-            <div className="w-full max-w-xs sm:max-w-sm md:max-w-lg lg:max-w-xl mx-auto px-2 sm:px-0">
+            <div className="w-full max-w-[92%] sm:max-w-sm md:max-w-lg lg:max-w-xl mx-auto px-2 sm:px-0">
               <img 
                 src="/how-to-use-skinwise.png" 
                 alt="How to use SkinWise - Take a photo, Send securely, results reviewed by a human" 
-                className="w-full h-auto object-contain max-h-32 sm:max-h-40 md:max-h-48 lg:max-h-56 xl:max-h-64 drop-shadow-lg"
+                className="w-full h-auto object-contain max-h-32 sm:max-h-40 md:max-h-48 lg:max-h-56 xl:max-h-64 drop-shadow-lg rounded-lg sm:rounded-xl shadow-sm"
               />
             </div>
 
@@ -300,7 +300,7 @@ export default function LandingPage() {
               <Stethoscope className="h-4 w-4 text-teal-600 flex-shrink-0" />
               <span>Clear next steps + referral letter</span>
             </div>
-            <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-700 col-span-2 sm:col-span-1">
+            <div className="flex items-center justify-center sm:justify-start space-x-2 text-xs sm:text-sm text-gray-700 col-span-2 sm:col-span-1">
               <CheckCircle className="h-4 w-4 text-teal-600 flex-shrink-0" />
               <span>No cosmetic upselling</span>
             </div>
