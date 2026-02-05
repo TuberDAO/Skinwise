@@ -15,7 +15,6 @@ export default function BookingConfirmationPage() {
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search)
       const sessionIdFromUrl = urlParams.get('session_id')
-      console.log('🎯 BOOKING CONFIRMATION: Session ID detected:', sessionIdFromUrl)
       setSessionId(sessionIdFromUrl)
       
       // In a real app, you'd fetch appointment details from your backend using the session ID
@@ -81,11 +80,11 @@ export default function BookingConfirmationPage() {
             </div>
             
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 leading-tight">
-              Appointment Confirmed!
+              Submission Received!
             </h1>
             
             <p className="text-lg md:text-xl text-slate-700 leading-relaxed max-w-2xl mx-auto">
-              Your dermatologist consultation has been successfully booked.
+              Your case is now with our dermatology team for a comprehensive review.
             </p>
           </div>
 
@@ -94,42 +93,46 @@ export default function BookingConfirmationPage() {
             <CardHeader className="bg-gradient-to-r from-teal-50 to-blue-50 border-b">
               <CardTitle className="text-2xl font-bold text-slate-900 flex items-center">
                 <Calendar className="w-6 h-6 mr-3 text-teal-600" />
-                Appointment Details
+                Dermatologist Review in Progress
               </CardTitle>
             </CardHeader>
             <CardContent className="p-8 space-y-6">
               
-              {/* Important Next Steps */}
+              {/* Status: review in progress */}
               <div className="bg-blue-50 border-l-4 border-blue-400 p-6 rounded-r-lg">
                 <h3 className="font-semibold text-blue-900 mb-3 text-lg">
-                  📧 Check Your Email
+                  Status
                 </h3>
                 <div className="text-blue-800 space-y-2">
                   <p>
-                    <strong>We've sent you a confirmation email</strong> with your video call link and appointment details.
+                    A certified dermatologist is reviewing your submitted photos and information.
                   </p>
                   <p>
-                    <strong>⚠️ Important:</strong> Please check your spam folder if you don't see the email within 5 minutes.
+                    <strong>No video call or appointment is required.</strong> This is an asynchronous review: you will receive a written assessment.
                   </p>
                 </div>
               </div>
 
-              {/* Appointment Summary */}
+              {/* Review Details & What's Next */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
-                  <h4 className="font-semibold text-slate-900 text-lg">Consultation Details</h4>
+                  <h4 className="font-semibold text-slate-900 text-lg">Review Details</h4>
                   <div className="space-y-3">
                     <div className="flex items-center text-slate-700">
-                      <Clock className="w-5 h-5 mr-3 text-teal-600" />
-                      <span><strong>Duration:</strong> 15 minutes</span>
-                    </div>
-                    <div className="flex items-center text-slate-700">
                       <User className="w-5 h-5 mr-3 text-teal-600" />
-                      <span><strong>Type:</strong> Online Video Consultation</span>
+                      <span><strong>Type:</strong> Specialist photo & case review (no live call)</span>
                     </div>
                     <div className="flex items-center text-slate-700">
                       <Shield className="w-5 h-5 mr-3 text-teal-600" />
-                      <span><strong>Provider:</strong> Board-certified Dermatologist</span>
+                      <span><strong>Reviewer:</strong> Certified dermatologist</span>
+                    </div>
+                    <div className="flex items-center text-slate-700">
+                      <Mail className="w-5 h-5 mr-3 text-teal-600" />
+                      <span><strong>Format:</strong> Written medical assessment</span>
+                    </div>
+                    <div className="flex items-center text-slate-700">
+                      <Clock className="w-5 h-5 mr-3 text-teal-600" />
+                      <span><strong>Typical turnaround:</strong> 48–72hrs</span>
                     </div>
                   </div>
                 </div>
@@ -139,30 +142,40 @@ export default function BookingConfirmationPage() {
                   <div className="space-y-3 text-slate-700">
                     <div className="flex items-start">
                       <span className="bg-teal-100 text-teal-700 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">1</span>
-                      <span>Check your email for the video call link</span>
+                      <span>Review in progress</span>
                     </div>
                     <div className="flex items-start">
                       <span className="bg-teal-100 text-teal-700 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">2</span>
-                      <span>Prepare your skin concern information</span>
+                      <span>Reports prepared</span>
                     </div>
                     <div className="flex items-start">
                       <span className="bg-teal-100 text-teal-700 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">3</span>
-                      <span>Join the video call at your scheduled time</span>
+                      <span>Results delivered securely</span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Pre-appointment Instructions */}
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-6">
-                <h4 className="font-semibold text-amber-800 mb-3">Before Your Appointment</h4>
-                <ul className="text-amber-700 space-y-2 text-sm">
-                  <li>• <strong>Test your internet connection</strong> and camera/microphone</li>
-                  <li>• <strong>Find a well-lit area</strong> for the video call</li>
-                  <li>• <strong>Prepare photos</strong> of your skin concern if needed</li>
-                  <li>• <strong>Have your medical history ready</strong> (current medications, allergies)</li>
-                  <li>• <strong>Write down your questions</strong> to make the most of your 15 minutes</li>
+              {/* What you'll receive */}
+              <div className="space-y-4">
+                <h4 className="font-semibold text-slate-900 text-lg">What you'll receive</h4>
+                <ul className="text-slate-700 space-y-2">
+                  <li className="flex items-start">
+                    <CheckCircle className="w-5 h-5 mr-3 text-teal-600 mt-0.5 flex-shrink-0" />
+                    <span>A plain-English summary for you</span>
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle className="w-5 h-5 mr-3 text-teal-600 mt-0.5 flex-shrink-0" />
+                    <span>A clinical-style summary suitable for sharing with a doctor</span>
+                  </li>
                 </ul>
+              </div>
+
+              {/* Privacy reassurance */}
+              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                <p className="text-sm text-slate-700 leading-relaxed">
+                  <strong>Privacy:</strong> Your review is anonymous. The dermatologist does not see your name or email.
+                </p>
               </div>
 
               {/* Session ID for reference */}
@@ -195,20 +208,6 @@ export default function BookingConfirmationPage() {
                   Print Confirmation
                 </Button>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Support Information */}
-          <Card className="bg-slate-100/80 border-0">
-            <CardContent className="p-6 text-center">
-              <h3 className="font-semibold text-slate-900 mb-2">Need Help?</h3>
-              <p className="text-sm text-slate-600 leading-relaxed">
-                If you need to reschedule or have questions about your appointment, 
-                please contact our support team at least 24 hours in advance.
-              </p>
-              <p className="text-sm text-slate-600 mt-2">
-                <strong>Email:</strong> support@skinwise.com | <strong>Hours:</strong> Mon-Fri 9AM-6PM
-              </p>
             </CardContent>
           </Card>
 

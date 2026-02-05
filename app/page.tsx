@@ -3,8 +3,8 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { CheckCircle, Shield, UserCheck, Stethoscope, Menu, X, ChevronDown, HelpCircle } from "lucide-react"
-import { useState, useEffect } from "react"
+import { CheckCircle, Shield, UserCheck, Stethoscope, Menu, X, ChevronDown, HelpCircle, Quote, User, FileText } from "lucide-react"
+import { useState, useEffect, useCallback } from "react"
 import { detectUserCurrency, formatPrice, formatDermatologistPrice } from '@/lib/currency'
 
 export default function LandingPage() {
@@ -12,6 +12,7 @@ export default function LandingPage() {
   const [openFAQ, setOpenFAQ] = useState<number | null>(null)
   const [userCurrency, setUserCurrency] = useState<'USD' | 'CHF' | 'EUR' | 'GBP' | 'CAD' | 'AUD' | 'JPY' | 'SEK' | 'NOK' | 'DKK'>('USD')
   const [currencyLoading, setCurrencyLoading] = useState(true)
+  const [exampleModal, setExampleModal] = useState<'patient' | 'doctor' | null>(null)
 
   useEffect(() => {
     const loadCurrency = async () => {
@@ -28,12 +29,31 @@ export default function LandingPage() {
     loadCurrency()
   }, [])
 
-  const getBasePrice = () => currencyLoading ? '$19.95 USD' : formatPrice(userCurrency)
-  const getDermatologistPrice = () => currencyLoading ? '$149.95 USD' : formatDermatologistPrice(userCurrency)
+  const getBasePrice = () => currencyLoading ? '£6' : formatPrice(userCurrency)
+  const getDermatologistPrice = () => currencyLoading ? '£25' : formatDermatologistPrice(userCurrency)
 
   const toggleFAQ = (index: number) => {
     setOpenFAQ(openFAQ === index ? null : index)
   }
+
+  // Close modal on ESC key
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setExampleModal(null)
+    }
+    if (exampleModal) {
+      document.addEventListener('keydown', handleEsc)
+      document.body.style.overflow = 'hidden'
+    }
+    return () => {
+      document.removeEventListener('keydown', handleEsc)
+      document.body.style.overflow = 'unset'
+    }
+  }, [exampleModal])
+
+  const openExampleModal = useCallback((type: 'patient' | 'doctor') => {
+    setExampleModal(type)
+  }, [])
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -118,9 +138,21 @@ export default function LandingPage() {
             </Link>
             <Link 
               className="text-sm font-medium text-gray-600 hover:text-teal-700 transition-colors whitespace-nowrap" 
+              href="#example-reports"
+            >
+              Example Reports
+            </Link>
+            <Link 
+              className="text-sm font-medium text-gray-600 hover:text-teal-700 transition-colors whitespace-nowrap" 
               href="#faq"
             >
               FAQ
+            </Link>
+            <Link 
+              className="text-sm font-medium text-gray-600 hover:text-teal-700 transition-colors whitespace-nowrap" 
+              href="#testimonials"
+            >
+              Testimonials
             </Link>
           </nav>
         </div>
@@ -145,115 +177,168 @@ export default function LandingPage() {
               </Link>
               <Link 
                 className="block px-4 py-3 text-base font-medium text-gray-700 hover:text-teal-700 hover:bg-gray-50 rounded-md transition-colors" 
+                href="#example-reports"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Example Reports
+              </Link>
+              <Link 
+                className="block px-4 py-3 text-base font-medium text-gray-700 hover:text-teal-700 hover:bg-gray-50 rounded-md transition-colors" 
                 href="#faq"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 FAQ
+              </Link>
+              <Link 
+                className="block px-4 py-3 text-base font-medium text-gray-700 hover:text-teal-700 hover:bg-gray-50 rounded-md transition-colors" 
+                href="#testimonials"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Testimonials
               </Link>
             </nav>
           </div>
         )}
       </header>
 
-      {/* Hero Section - Improved Mobile Responsive */}
+      {/* Hero Section - Trust-Forward, Clinical */}
       <section className="bg-gradient-to-br from-slate-50 via-white to-teal-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
-          <div className="text-center space-y-6 sm:space-y-8">
-            {/* How to Use Graphic - Enhanced Mobile Hero */}
-            <div className="w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto px-4 sm:px-0">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-5 lg:py-8">
+          <div className="text-center space-y-3 sm:space-y-4">
+            {/* How to Use Graphic - Compact */}
+            <div className="w-full max-w-xs sm:max-w-sm md:max-w-lg lg:max-w-xl mx-auto px-2 sm:px-0">
               <img 
                 src="/how-to-use-skinwise.png" 
-                alt="How to use SkinWise - Take a photo, Send securely, AI-assisted results in 24 hours" 
-                className="w-full h-auto object-contain max-h-48 sm:max-h-56 md:max-h-64 lg:max-h-80 xl:max-h-96 drop-shadow-lg"
+                alt="How to use SkinWise - Take a photo, Send securely, results reviewed by a human" 
+                className="w-full h-auto object-contain max-h-32 sm:max-h-40 md:max-h-48 lg:max-h-56 xl:max-h-64 drop-shadow-lg"
               />
             </div>
 
-            {/* Headlines - Better responsive text sizing */}
-            <div className="space-y-3 sm:space-y-4 max-w-4xl mx-auto">
+            {/* Headlines - Trust-forward, clinical */}
+            <div className="space-y-1 sm:space-y-2 max-w-4xl mx-auto">
               <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900 leading-tight">
-                Concerned About a{" "}
-                <span className="text-teal-700">Skin Change</span>?
+                Fast skin photo assessment:{" "}
+                <span className="text-teal-700">reviewed by a human</span>
               </h1>
-              <h2 className="text-sm sm:text-base md:text-lg lg:text-xl font-medium text-gray-700 leading-relaxed">
-                Get Professional Assessment for Rashes, Moles, Lesions & Discoloration
+              <h2 className="text-xs sm:text-sm md:text-base lg:text-lg text-gray-700 leading-relaxed max-w-2xl mx-auto">
+                Upload 1 to 4 photos and a short description. We'll send a clear summary + a doctor-friendly note if needed.
               </h2>
             </div>
 
-            {/* Description */}
-            <p className="text-sm sm:text-base md:text-lg text-gray-600 leading-relaxed max-w-2xl mx-auto">
-              AI-assisted analysis reviewed by healthcare professionals. We focus on identifying 
-              skin concerns and provide ethical guidance not product sales.
+            {/* AI mention - demoted to secondary text */}
+            <p className="text-xs text-gray-500 max-w-xl mx-auto">
+              AI-assisted triage, then checked by a trained reviewer for clarity and safety.
             </p>
 
-            {/* Key Points - Better Mobile Layout */}
-            <div className="flex flex-col sm:flex-row sm:justify-center sm:flex-wrap gap-3 sm:gap-4 lg:gap-6 max-w-4xl mx-auto">
-              <div className="flex items-center justify-center space-x-2 text-sm sm:text-base text-gray-600 py-2 px-3">
-                <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-teal-600 flex-shrink-0" />
-                <span className="whitespace-nowrap">24 hour analysis</span>
-              </div>
-              <div className="flex items-center justify-center space-x-2 text-sm sm:text-base text-gray-600 py-2 px-3">
-                <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-teal-600 flex-shrink-0" />
-                <span className="whitespace-nowrap">Professional review</span>
-              </div>
-              <div className="flex items-center justify-center space-x-2 text-sm sm:text-base text-gray-600 py-2 px-3">
-                <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-teal-600 flex-shrink-0" />
-                <span className="whitespace-nowrap">Ethical guidance only</span>
-              </div>
-            </div>
-
-            {/* CTA Button */}
-            <div className="max-w-sm mx-auto space-y-3">
+            {/* CTA Button - Compact */}
+            <div className="max-w-sm mx-auto space-y-1.5">
               <Link href="/login">
-                <Button className="w-full bg-teal-700 hover:bg-teal-800 text-white text-sm sm:text-base md:text-lg py-3 sm:py-4 px-6 shadow-lg transition-colors">
+                <Button className="w-full bg-teal-700 hover:bg-teal-800 text-white text-sm sm:text-base py-2.5 sm:py-3 px-6 shadow-lg transition-colors">
                   Start Skin Assessment
                 </Button>
               </Link>
-              <p className="text-xs sm:text-sm text-gray-500 px-2">
-                Secure assessment • • Results within 24 hours
+              <p className="text-xs sm:text-sm text-gray-600 text-center">
+                {currencyLoading ? '£6' : formatPrice(userCurrency)} • Results in 2 to 4 hours
               </p>
-            </div>
-
-            {/* Trust Indicators */}
-            <div className="flex flex-col sm:flex-row sm:justify-center sm:flex-wrap gap-3 sm:gap-4 lg:gap-6 max-w-3xl mx-auto pt-4">
-              <div className="flex items-center justify-center space-x-2 text-sm text-gray-700 py-2 px-3">
-                <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-teal-600 flex-shrink-0" />
-                <span className="font-medium whitespace-nowrap">Private & Secure</span>
+              <div className="flex flex-col items-center space-y-1 pt-1">
+                <Link 
+                  href="#example-reports" 
+                  className="text-xs text-teal-700 hover:text-teal-800 underline underline-offset-2 transition-colors"
+                >
+                  See example reports
+                </Link>
+                <div className="flex items-center justify-center space-x-3 text-xs text-gray-500">
+                  <button 
+                    onClick={() => {
+                      document.getElementById('example-reports')?.scrollIntoView({ behavior: 'smooth' })
+                      setTimeout(() => openExampleModal('patient'), 500)
+                    }}
+                    className="hover:text-teal-700 underline underline-offset-2 transition-colors"
+                  >
+                    Patient summary
+                  </button>
+                  <span>|</span>
+                  <button 
+                    onClick={() => {
+                      document.getElementById('example-reports')?.scrollIntoView({ behavior: 'smooth' })
+                      setTimeout(() => openExampleModal('doctor'), 500)
+                    }}
+                    className="hover:text-teal-700 underline underline-offset-2 transition-colors"
+                  >
+                    Doctor letter
+                  </button>
+                </div>
               </div>
-              <div className="flex items-center justify-center space-x-2 text-sm text-gray-700 py-2 px-3">
-                <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-teal-600 flex-shrink-0" />
-                <span className="font-medium whitespace-nowrap">No Product Partnerships</span>
-              </div>
-              <div className="flex items-center justify-center space-x-2 text-sm text-gray-700 py-2 px-3">
-                <UserCheck className="h-4 w-4 sm:h-5 sm:w-5 text-teal-600 flex-shrink-0" />
-                <span className="font-medium whitespace-nowrap">Reviewed by Professionals</span>
-              </div>
+              <Link 
+                href="#testimonials" 
+                className="inline-block text-xs text-teal-700 hover:text-teal-800 underline underline-offset-2 transition-colors"
+              >
+                See testimonials
+              </Link>
             </div>
           </div>
         </div>
       </section>
 
-      {/* AI Analysis Section - Fixed Mobile Layout */}
+      {/* Trust Bar - Compact grid of trust signals */}
+      <section className="bg-slate-50 border-y border-slate-200">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+            <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-700">
+              <Shield className="h-4 w-4 text-teal-600 flex-shrink-0" />
+              <span>Private photo handling</span>
+            </div>
+            <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-700">
+              <CheckCircle className="h-4 w-4 text-teal-600 flex-shrink-0" />
+              <span>2 to 4 hours typical</span>
+            </div>
+            <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-700">
+              <UserCheck className="h-4 w-4 text-teal-600 flex-shrink-0" />
+              <span>Anonymous option</span>
+            </div>
+            <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-700">
+              <Stethoscope className="h-4 w-4 text-teal-600 flex-shrink-0" />
+              <span>Clear next steps + referral letter</span>
+            </div>
+            <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-700 col-span-2 sm:col-span-1">
+              <CheckCircle className="h-4 w-4 text-teal-600 flex-shrink-0" />
+              <span>No cosmetic upselling</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Clinical Safety Note - Calm, subtle */}
+      <section className="bg-amber-50 border-b border-amber-200">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-3">
+          <p className="text-xs sm:text-sm text-amber-800 text-center">
+            <span className="font-medium">Not for emergencies.</span> If symptoms are severe or rapidly worsening, seek urgent medical care.
+          </p>
+        </div>
+      </section>
+
+      {/* Skin Assessment Section - Human-first positioning */}
       <section className="bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
-          <div className="text-center space-y-8 sm:space-y-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 lg:py-16">
+          <div className="text-center space-y-6 sm:space-y-8">
             {/* Headlines */}
             <div className="space-y-3 sm:space-y-4 max-w-4xl mx-auto">
               <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900">
-                AI-Assisted Skin Analysis
+                Professional Skin Assessment
               </h2>
-              <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl font-medium text-gray-700">
+              <h3 className="text-base sm:text-lg md:text-xl text-gray-700">
                 Concerned About a Skin Change?
               </h3>
               <p className="text-sm sm:text-base md:text-lg text-gray-600 leading-relaxed">
-                Get a professional AI-powered assessment for rashes, moles, lesions, discoloration or any other skin issue.
+                Get a detailed assessment for rashes, moles, lesions, discoloration or any other skin issue: reviewed by a trained professional.
               </p>
             </div>
 
             {/* Description */}
             <p className="text-sm sm:text-base text-gray-600 leading-relaxed max-w-3xl mx-auto">
-              Our AI-assisted analysis is built to identify potential medical concerns. For added peace of mind, 
-              you can opt to have your case reviewed by a licensed online dermatologist. We offer ethical 
-              guidance—no cosmetic upselling, ever. This service is for over 18's only.
+              Our assessment process uses AI to assist with initial triage, but every case is checked by a trained reviewer. 
+              For added peace of mind, you can opt to have your case reviewed by a licensed dermatologist. 
+              We offer ethical guidance: no cosmetic upselling, ever. This service is for over 18s only.
             </p>
 
             {/* Features Grid - Better Mobile Layout */}
@@ -263,7 +348,7 @@ export default function LandingPage() {
                   <CheckCircle className="h-8 w-8 sm:h-10 sm:w-10 text-teal-700" />
                 </div>
                 <div>
-                  <h4 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 mb-2">Results in 24 hours</h4>
+                  <h4 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 mb-2">Results in 2 to 4 hours</h4>
                   <p className="text-sm sm:text-base text-gray-600 leading-relaxed">Fast, reliable analysis when you need answers</p>
                 </div>
               </div>
@@ -273,8 +358,8 @@ export default function LandingPage() {
                   <Stethoscope className="h-8 w-8 sm:h-10 sm:w-10 text-teal-700" />
                 </div>
                 <div>
-                  <h4 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 mb-2">Optional professional review</h4>
-                  <p className="text-sm sm:text-base text-gray-600 leading-relaxed">Licensed dermatologist consultation available</p>
+                  <h4 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 mb-2">Optional dermatologist review</h4>
+                  <p className="text-sm sm:text-base text-gray-600 leading-relaxed">Licensed dermatologist consultation available after results</p>
                 </div>
               </div>
               
@@ -284,16 +369,16 @@ export default function LandingPage() {
                 </div>
                 <div>
                   <h4 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 mb-2">Private & ethical approach</h4>
-                  <p className="text-sm sm:text-base text-gray-600 leading-relaxed">Confidential & no product upselling</p>
+                  <p className="text-sm sm:text-base text-gray-600 leading-relaxed">Confidential & no cosmetic upselling</p>
                 </div>
               </div>
             </div>
 
             {/* CTA */}
-            <div className="pt-6">
+            <div className="pt-4">
               <Link href="/login">
                 <Button className="bg-teal-700 hover:bg-teal-800 text-white px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base lg:text-lg font-medium shadow-lg transition-colors">
-                  Get Your Skin Analysis
+                  Get Your Skin Assessment
                 </Button>
               </Link>
             </div>
@@ -446,9 +531,9 @@ export default function LandingPage() {
                 <div className="w-16 h-16 sm:w-20 sm:h-20 bg-teal-100 rounded-full flex items-center justify-center mx-auto">
                   <Shield className="h-8 w-8 sm:h-10 sm:w-10 text-teal-700" />
                 </div>
-                <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 break-words hyphens-auto">No Product Sales</h3>
-                <p className="text-sm sm:text-base text-gray-600 leading-relaxed break-words hyphens-auto">
-                  We don't sell products or earn commissions. Our recommendations focus purely on your health.
+                <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">No Product Sales</h3>
+                <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
+                  We don't upsell cosmetic products. Our recommendations focus purely on your health.
                 </p>
               </div>
               
@@ -486,40 +571,40 @@ export default function LandingPage() {
                 Frequently Asked Questions
               </h2>
               <p className="text-sm sm:text-base md:text-lg text-gray-600">
-                Get answers to common questions about SkinWise
+                Get answers to common questions about SkinWiseapp
               </p>
             </div>
             
             <div className="space-y-4 text-left">
               {[
                 {
-                  q: "What is SkinWise and how does it work?",
-                  a: "SkinWise is a fast, affordable way to get a preliminary assessment of any visible skin concern — using expert-trained AI. You upload up to 4 photos and provide a brief description. Within 24 hours, you receive a clear, easy-to-read explanation of what the issue may be; plus a letter written for medical professionals that you can take to your dermatologist. SkinWise supports assessments for any skin condition, anywhere on the body."
+                  q: "What is SkinWiseapp and how does it work?",
+                  a: "SkinWiseapp is a fast, affordable way to get a preliminary assessment of any visible skin concern; using expert-trained AI & human review. You upload up to 4 photos and provide a brief description. Within 2-4 hours, you receive a clear, easy-to-read explanation of what the issue may be; plus a letter written for medical professionals that you can take to your dermatologist. SkinWiseapp supports assessments for any skin condition, anywhere on the body. Strictly confidential with an anonymous login option."
                 },
                 {
                   q: `What do I get for ${getBasePrice()}?`,
-                  a: "You'll receive:\nA personalised PDF report that includes an AI-assisted analysis based on your submitted photos and description, written in clear, everyday language to help you understand your skin concern.\nA medically formatted letter for your Doctor or dermatologist, written in clinical terms.\nResults delivered within 24 hours directly to your email."
+                  a: "You'll receive:\nA detailed PDF report that includes an AI-assisted analysis based on your submitted photos and description, written in clear, everyday language to help you understand your skin concern.\nA medically formatted letter for your Doctor or dermatologist, written in clinical terms.\nResults delivered within 2-4 hours directly to your email."
                 },
                 {
-                  q: "Can I get a dermatologist to review my case?",
-                  a: `Yes. After your initial results, you can request a full review by a certified dermatologist for ${getDermatologistPrice()}. You'll receive an expert evaluation, clinical letter, and next steps — typically within 1–2 days. This is optional and can be requested after reviewing your AI assessment.`
+                  q: "Can I get a certified dermatologist to review my case?",
+                  a: `Yes. After your initial results, you can request a more detailed review by a certified dermatologist for ${getDermatologistPrice()}. You'll receive an expert evaluation, clinical letter, and next steps; typically within 1 to 2 days.`
                 },
                 {
                   q: "What kinds of skin problems can this help with?",
-                  a: "SkinWise is designed for any visible skin concern — whether it's a rash, spot, mole, discolouration, irritation, swelling or chronic condition. We examine any skin condition anywhere on the body."
+                  a: "SkinWiseapp is designed for any visible skin concern; whether it's a rash, spot, mole, discolouration, irritation, swelling or chronic condition. We examine any skin condition anywhere on the body."
                 },
                 {
                   q: "Is this like those instant AI skin apps?",
-                  a: "No — and that's intentional. Many apps give instant results that are often wrong. SkinWise takes up to 24 hours because your submission is carefully evaluated using medically informed AI workflows. Accuracy is our top priority — not speed."
+                  a: "No, and that's intentional. Many apps give instant results that are often wrong. SkinWiseapp takes up to 2-4 hours because your submission is carefully evaluated using medically informed AI workflows and human review. Accuracy is our top priority. We also offer further analysis with a certified dermatologist. Also, please note, to protect your data and ensure the best results, please ensure you're using the official SkinWise app. Other apps may have similar names, but you can always identify us by our official logo and our domain: skinwiseapp.com"
                 },
                 {
                   q: "How long does it take to get results?",
-                  a: "Your initial AI-assisted assessment is delivered within 24 hours. If you choose dermatologist review, that report usually arrives within 1–2 days."
+                  a: "Your initial human reviewed AI-assisted assessment is delivered within 2 to 4 hours, some cases may take 24hrs but most are within a few hours. If you choose certified dermatologist review, that report usually arrives within 1 to 2 days."
                 },
 
                 {
-                  q: "Who can use SkinWise?",
-                  a: "SkinWise is available globally, but only to individuals 18 years or older."
+                  q: "Who can use SkinWiseapp?",
+                  a: "SkinWiseapp is available globally. You must be 18yrs old or older to use SkinWiseapp."
                 }
               ].map((faq, index) => (
                 <Card key={index} className="border border-gray-200 bg-white shadow-sm">
@@ -543,6 +628,193 @@ export default function LandingPage() {
                   )}
                 </Card>
               ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section id="testimonials" className="bg-gray-50 scroll-mt-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
+          <div className="text-center space-y-8 sm:space-y-10">
+            {/* Section Header */}
+            <div className="space-y-3 sm:space-y-4 max-w-3xl mx-auto">
+              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900">
+                Testimonials
+              </h2>
+              <p className="text-sm sm:text-base md:text-lg text-gray-600">
+                Feedback from real users (names changed for privacy)
+              </p>
+            </div>
+            
+            {/* Testimonial Cards Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto">
+              {/* Testimonial 1 - Ms Anne */}
+              <Card className="bg-white shadow-md border-gray-100 hover:shadow-lg transition-shadow duration-300 animate-fade-in-up">
+                <CardContent className="p-6 space-y-4">
+                  {/* Quote Icon */}
+                  <Quote className="h-8 w-8 text-teal-200 -mb-2" />
+                  
+                  {/* Quote Text */}
+                  <p className="text-sm sm:text-base text-gray-600 leading-relaxed italic">
+                    "I wanted to share my sincere gratitude for the guidance I received. I am now fully recovered and it's a relief to finally be comfortable and pain-free in my daily life again. I truly appreciate the assessments provided; wishing the entire team nothing but the best."
+                  </p>
+                  
+                  {/* User Info - single flex row: avatar, name, badge */}
+                  <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 pt-4 border-t border-gray-100 min-h-[3rem]">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-teal-100 rounded-full flex items-center justify-center flex-shrink-0" aria-hidden>
+                      <span className="text-sm sm:text-base font-semibold text-teal-700">AA</span>
+                    </div>
+                    <p className="text-sm sm:text-base font-medium text-gray-900 whitespace-nowrap flex-shrink-0 ">Ms Anne</p>
+                    <span className="inline-flex flex-shrink-0 items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 whitespace-nowrap ml-auto">
+                      Positive outcome
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Testimonial 2 - Mr Ben */}
+              <Card className="bg-white shadow-md border-gray-100 hover:shadow-lg transition-shadow duration-300 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+                <CardContent className="p-6 space-y-4">
+                  {/* Quote Icon */}
+                  <Quote className="h-8 w-8 text-teal-200 -mb-2" />
+                  
+                  {/* Quote Text */}
+                  <p className="text-sm sm:text-base text-gray-600 leading-relaxed italic">
+                    "Thanks. This is the first photo I've taken and I will take periodic photos as advised. The letter you wrote for my doctor was also very handy, he quickly arranged an appointment with the local dermatologist. Great service."
+                  </p>
+                  
+                  {/* User Info - single flex row: avatar, name, badge */}
+                  <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 pt-4 border-t border-gray-100 min-h-[3rem]">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0" aria-hidden>
+                      <span className="text-sm sm:text-base font-semibold text-blue-700">BK</span>
+                    </div>
+                    <p className="text-sm sm:text-base font-medium text-gray-900 whitespace-nowrap flex-shrink-0 ">Mr Ben</p>
+                    <span className="inline-flex flex-shrink-0 items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 whitespace-nowrap ml-auto">
+                      Helpful referral letter
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Testimonial 3 - Ms Chloe */}
+              <Card className="bg-white shadow-md border-gray-100 hover:shadow-lg transition-shadow duration-300 animate-fade-in-up md:col-span-2 lg:col-span-1 md:max-w-md md:mx-auto lg:max-w-none" style={{ animationDelay: '200ms' }}>
+                <CardContent className="p-6 space-y-4">
+                  {/* Quote Icon */}
+                  <Quote className="h-8 w-8 text-teal-200 -mb-2" />
+                  
+                  {/* Quote Text */}
+                  <p className="text-sm sm:text-base text-gray-600 leading-relaxed italic">
+                    "A very fast response, both the AI review and the online dermatologist put my mind at rest. Thank you."
+                  </p>
+                  
+                  {/* User Info - single flex row: avatar, name, badge */}
+                  <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 pt-4 border-t border-gray-100 min-h-[3rem]">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0" aria-hidden>
+                      <span className="text-sm sm:text-base font-semibold text-purple-700">CH</span>
+                    </div>
+                    <p className="text-sm sm:text-base font-medium text-gray-900 whitespace-nowrap flex-shrink-0 ">Ms Chloe</p>
+                    <span className="inline-flex flex-shrink-0 items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 whitespace-nowrap ml-auto">
+                      Fast reassurance
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+            
+            {/* Disclosure */}
+            <p className="text-xs sm:text-sm text-gray-500 max-w-2xl mx-auto pt-4">
+              Individual experiences vary. SkinWise is not a substitute for professional medical diagnosis.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Example Reports Section */}
+      <section id="example-reports" className="bg-white scroll-mt-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
+          <div className="text-center space-y-8 sm:space-y-10">
+            {/* Section Header */}
+            <div className="space-y-3 sm:space-y-4 max-w-3xl mx-auto">
+              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900">
+                Example of What You'll Receive
+              </h2>
+              <p className="text-sm sm:text-base md:text-lg text-gray-600">
+                You will receive two letters in a similar format to the examples below, one written for you and one that you can give to your doctor.
+              </p>
+            </div>
+            
+            {/* Report Cards Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-4xl mx-auto">
+              {/* Patient Summary Card */}
+              <button
+                onClick={() => openExampleModal('patient')}
+                className="text-left group"
+              >
+                <Card className="bg-white shadow-md border-gray-200 hover:shadow-xl hover:border-teal-300 transition-all duration-300 h-full">
+                  <CardContent className="p-6 space-y-4">
+                    {/* Document Header */}
+                    <div className="flex items-center space-x-3 pb-3 border-b border-gray-100">
+                      <div className="w-10 h-10 bg-teal-100 rounded-lg flex items-center justify-center">
+                        <FileText className="h-5 w-5 text-teal-700" />
+                      </div>
+                      <div>
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-900">Patient Summary</h3>
+                        <p className="text-xs text-gray-500">(Plain English)</p>
+                      </div>
+                    </div>
+                    
+                    {/* Preview Content */}
+                    <div className="space-y-2 text-xs text-gray-500 leading-relaxed bg-gray-50 p-3 rounded-lg border border-gray-100">
+                      <p className="font-medium text-gray-700">Summary of Your Concern</p>
+                      <p className="line-clamp-2">Based on the photos you provided showing a mole on your forehead, we reviewed a pigmented skin lesion...</p>
+                      <p className="font-medium text-gray-700 pt-2">Key Observations</p>
+                      <p className="line-clamp-1">• Location: Forehead, near the hairline...</p>
+                    </div>
+                    
+                    {/* Click to expand */}
+                    <p className="text-xs text-teal-700 font-medium group-hover:text-teal-800 transition-colors flex items-center">
+                      Click to view full example
+                      <ChevronDown className="h-3 w-3 ml-1 -rotate-90" />
+                    </p>
+                  </CardContent>
+                </Card>
+              </button>
+
+              {/* Doctor Letter Card */}
+              <button
+                onClick={() => openExampleModal('doctor')}
+                className="text-left group"
+              >
+                <Card className="bg-white shadow-md border-gray-200 hover:shadow-xl hover:border-teal-300 transition-all duration-300 h-full">
+                  <CardContent className="p-6 space-y-4">
+                    {/* Document Header */}
+                    <div className="flex items-center space-x-3 pb-3 border-b border-gray-100">
+                      <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <Stethoscope className="h-5 w-5 text-blue-700" />
+                      </div>
+                      <div>
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-900">Doctor Letter</h3>
+                        <p className="text-xs text-gray-500">(Medical Format)</p>
+                      </div>
+                    </div>
+                    
+                    {/* Preview Content */}
+                    <div className="space-y-2 text-xs text-gray-500 leading-relaxed bg-gray-50 p-3 rounded-lg border border-gray-100">
+                      <p className="font-medium text-gray-700">RE: Pigmented lesion of the forehead</p>
+                      <p className="line-clamp-2">Dear Doctor, Thank you for reviewing this patient, who presents with a pigmented lesion...</p>
+                      <p className="font-medium text-gray-700 pt-2">Clinical impression</p>
+                      <p className="line-clamp-1">The lesion demonstrates several reassuring features...</p>
+                    </div>
+                    
+                    {/* Click to expand */}
+                    <p className="text-xs text-teal-700 font-medium group-hover:text-teal-800 transition-colors flex items-center">
+                      Click to view full example
+                      <ChevronDown className="h-3 w-3 ml-1 -rotate-90" />
+                    </p>
+                  </CardContent>
+                </Card>
+              </button>
             </div>
           </div>
         </div>
@@ -594,6 +866,7 @@ export default function LandingPage() {
                 <li><Link href="/login" className="hover:text-white transition-colors break-words hyphens-auto">Skin Assessment</Link></li>
                 <li><Link href="#how-it-works" className="hover:text-white transition-colors break-words hyphens-auto">How It Works</Link></li>
                 <li><Link href="#faq" className="hover:text-white transition-colors break-words hyphens-auto">FAQ</Link></li>
+                <li><Link href="#testimonials" className="hover:text-white transition-colors break-words hyphens-auto">Testimonials</Link></li>
               </ul>
             </div>
             
@@ -615,11 +888,185 @@ export default function LandingPage() {
           
           <div className="border-t border-gray-800 mt-8 pt-8 text-center">
             <p className="text-xs sm:text-sm text-gray-400 break-words hyphens-auto">
-              © 2025 SkinWise. All rights reserved. Professional medical advice should always be sought for serious concerns.
+              © SkinWiseapp 2026. All rights reserved. Professional medical advice should always be sought for serious concerns.
             </p>
           </div>
         </div>
       </footer>
+
+      {/* Example Report Modal */}
+      {exampleModal && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          onClick={() => setExampleModal(null)}
+        >
+          <div 
+            className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-gray-200 bg-gray-50">
+              <div className="flex items-center space-x-3">
+                {exampleModal === 'patient' ? (
+                  <>
+                    <div className="w-8 h-8 bg-teal-100 rounded-lg flex items-center justify-center">
+                      <FileText className="h-4 w-4 text-teal-700" />
+                    </div>
+                    <div>
+                      <h3 className="text-base sm:text-lg font-semibold text-gray-900">Patient Summary</h3>
+                      <p className="text-xs text-gray-500">Plain English Format</p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <Stethoscope className="h-4 w-4 text-blue-700" />
+                    </div>
+                    <div>
+                      <h3 className="text-base sm:text-lg font-semibold text-gray-900">Doctor Letter</h3>
+                      <p className="text-xs text-gray-500">Medical Format</p>
+                    </div>
+                  </>
+                )}
+              </div>
+              <button
+                onClick={() => setExampleModal(null)}
+                className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
+                aria-label="Close modal"
+              >
+                <X className="h-5 w-5 text-gray-500" />
+              </button>
+            </div>
+            
+            {/* Modal Content */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+              {exampleModal === 'patient' ? (
+                <div className="space-y-5 text-sm sm:text-base text-gray-700 leading-relaxed">
+                  {/* Patient Summary Content */}
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-800">
+                    <strong>Note:</strong> This is an illustrative template for demonstration purposes only.
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">Summary of Your Concern</h4>
+                    <p>
+                      Based on the photos you provided showing a mole on your forehead, we reviewed a pigmented skin lesion that you reported has slowly changed over time. You noted that it appears to have grown slightly and darkened over approximately 10 months.
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">Key Observations</h4>
+                    <ul className="list-disc list-inside space-y-1 text-gray-600">
+                      <li>Location: Forehead, near the hairline</li>
+                      <li>Appearance: Small brown mole with an even colour and smooth outline</li>
+                      <li>Shape: Appears generally symmetrical</li>
+                      <li>Surface: Looks flat to slightly raised, without crusting or bleeding</li>
+                      <li>Duration: Long-standing, with gradual change reported over approximately 10 months</li>
+                      <li>Associated symptoms: No pain, bleeding, ulceration, or irritation reported</li>
+                    </ul>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">Most Likely Possibilities</h4>
+                    <ul className="list-disc list-inside space-y-1 text-gray-600">
+                      <li>A benign mole that has slowly evolved over time, which is common on sun-exposed areas such as the face</li>
+                      <li>A sun-related pigment spot that may darken gradually over months or years</li>
+                      <li>An early atypical mole, which is less likely based on appearance but should be checked because change has occurred</li>
+                    </ul>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">What to Do Next</h4>
+                    <ul className="list-disc list-inside space-y-1 text-gray-600">
+                      <li>Consider booking a routine appointment with your Doctor or a dermatologist</li>
+                      <li>Bring the Doctor's Letter provided to help clearly explain the history and timeline of change</li>
+                      <li>Your Doctor may examine the mole with magnification and advise whether monitoring or removal is appropriate</li>
+                      <li>Take follow-up photos if you notice further changes</li>
+                    </ul>
+                  </div>
+                  
+                  <div className="bg-teal-50 border border-teal-200 rounded-lg p-3">
+                    <p className="text-teal-800 text-sm">
+                      Based on the appearance and slow rate of change, this does not appear urgent, but checking any changing mole is the safest approach.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-5 text-sm sm:text-base text-gray-700 leading-relaxed">
+                  {/* Doctor Letter Content - UK NHS / GMC Style */}
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-800">
+                    <strong>Note:</strong> This is an illustrative template for demonstration purposes only.
+                  </div>
+                  
+                  <div className="border-b border-gray-300 pb-2">
+                    <p className="font-semibold text-gray-900">RE: Pigmented lesion of the forehead</p>
+                  </div>
+                  
+                  <div>
+                    <p>Dear Doctor,</p>
+                    <p className="mt-2">
+                      Thank you for reviewing this patient, who presents with a pigmented lesion on the forehead reported to have slowly increased in size and darkened over approximately 10 months.
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">History:</h4>
+                    <ul className="list-disc list-inside space-y-1 text-gray-600">
+                      <li>Long-standing mole with gradual change</li>
+                      <li>No reported bleeding, ulceration, pain, pruritus, or inflammation</li>
+                      <li>Concern relates specifically to slow evolution over time</li>
+                    </ul>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">Examination (based on submitted images):</h4>
+                    <ul className="list-disc list-inside space-y-1 text-gray-600">
+                      <li>Small brown melanocytic lesion on the forehead near the hairline</li>
+                      <li>Appears symmetrical with smooth, well-defined borders</li>
+                      <li>Colour appears relatively uniform without obvious variegation</li>
+                      <li>No visible crusting, ulceration, or secondary change</li>
+                    </ul>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">Clinical impression:</h4>
+                    <p>
+                      The lesion demonstrates several reassuring features. However, given the documented change over time and facial location, in-person clinical assessment is appropriate. The appearance is more suggestive of benign melanocytic evolution or sun-related pigmentation, though atypical change cannot be excluded without examination.
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">Suggested assessment:</h4>
+                    <p>
+                      Routine clinical review is recommended. Dermoscopic examination and clinical photography may be helpful. Excision or biopsy only if clinically indicated following in-person assessment.
+                    </p>
+                  </div>
+                  
+                  <div className="pt-4 border-t border-gray-200">
+                    <p className="mt-4">Yours sincerely,</p>
+                    <p className="font-medium">Skinwiseapp Clinical Review</p>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            {/* Modal Footer */}
+            <div className="px-4 sm:px-6 py-4 border-t border-gray-200 bg-gray-50">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <p className="text-xs text-gray-500">
+                  Illustrative template for demonstration
+                </p>
+                <Button
+                  onClick={() => setExampleModal(null)}
+                  className="bg-teal-700 hover:bg-teal-800 text-white text-sm py-2 px-4"
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 } 

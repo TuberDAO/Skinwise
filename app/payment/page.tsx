@@ -5,9 +5,11 @@ import { useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAuth } from '@/components/providers/auth-provider'
-import { Heart, CreditCard, Shield, Clock, Users } from "lucide-react"
+import { Heart, CreditCard, Shield, Clock, Users, LogOut } from "lucide-react"
 import Link from "next/link"
 import { stripePromise } from '@/lib/stripe'
+import { auth } from '@/firebase'
+import { signOut } from 'firebase/auth'
 import { detectUserCurrency, formatPrice, getUserCurrencyFromLocale, type SupportedCurrency } from '@/lib/currency'
 
 export default function PaymentPage() {
@@ -40,15 +42,12 @@ export default function PaymentPage() {
     // Only run after component is mounted and user auth is resolved
     if (!isClientSide || authLoading || !user) return
 
-    console.log('PaymentPage: Checking for assessment data and session_id...')
-    
     // Check if we're being accessed with a session_id (indicating successful payment)
     const urlParams = new URLSearchParams(window.location.search)
     const sessionId = urlParams.get('session_id')
     
     if (sessionId) {
       // If there's a session_id, we should redirect to success page instead
-      console.log('PaymentPage: Found session_id, should redirect to success page')
       setShouldRedirect(`/success?session_id=${sessionId}`)
       return
     }
@@ -56,11 +55,9 @@ export default function PaymentPage() {
     // Get assessment data from session storage
     const data = sessionStorage.getItem('pendingAssessment')
     if (data) {
-      console.log('PaymentPage: Found assessment data')
       setAssessmentData(JSON.parse(data))
     } else {
       // Only redirect back to upload if no data AND no session_id
-      console.log('PaymentPage: No assessment data found, should redirect to upload')
       setShouldRedirect('/upload')
     }
   }, [isClientSide, authLoading, user])
@@ -68,7 +65,6 @@ export default function PaymentPage() {
   // Handle redirects in a separate useEffect to avoid render conflicts
   useEffect(() => {
     if (shouldRedirect) {
-      console.log('PaymentPage: Redirecting to:', shouldRedirect)
       const timeoutId = setTimeout(() => {
         router.push(shouldRedirect)
       }, 100) // Small delay to avoid render conflicts
@@ -121,7 +117,6 @@ export default function PaymentPage() {
 
     try {
       setLoading(true)
-      console.log('Starting payment process...', { userId: user.uid, assessmentData, currency: userCurrency })
       
       // Create checkout session with detected currency
       const response = await fetch('/api/create-checkout-session', {
@@ -137,11 +132,8 @@ export default function PaymentPage() {
         }),
       })
 
-      console.log('API response status:', response.status)
-      
       // Get response text first for better error handling
       const responseText = await response.text()
-      console.log('API response text:', responseText)
 
       if (!response.ok) {
         throw new Error(`API Error (${response.status}): ${responseText}`)
@@ -157,17 +149,12 @@ export default function PaymentPage() {
         throw new Error('No session ID returned from API')
       }
 
-      console.log('Checkout session created:', session.id)
-
       // Redirect to Stripe Checkout
-      console.log('Loading Stripe...')
       const stripe = await stripePromise
       
       if (!stripe) {
         throw new Error('Failed to load Stripe.js')
       }
-
-      console.log('Redirecting to checkout...')
       const { error } = await stripe.redirectToCheckout({
         sessionId: session.id,
       })
@@ -205,8 +192,27 @@ export default function PaymentPage() {
             className="h-8 sm:h-10 w-auto"
           />
         </Link>
-        <div className="ml-auto text-xs sm:text-sm text-slate-600 truncate max-w-[120px] sm:max-w-none">
-          {user.email}
+        <div className="ml-auto flex items-center space-x-3">
+          <span className="text-xs sm:text-sm text-slate-600 truncate max-w-[120px] sm:max-w-none">
+            {user.email}
+          </span>
+          <button
+            onClick={async () => {
+              if (auth) {
+                try {
+                  await signOut(auth)
+                  window.location.href = '/login'
+                } catch (error) {
+                  console.error('Logout failed:', error)
+                  window.location.href = '/login'
+                }
+              }
+            }}
+            className="text-xs sm:text-sm text-slate-500 hover:text-slate-700 flex items-center"
+          >
+            <LogOut className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+            <span className="hidden sm:inline">Logout</span>
+          </button>
         </div>
       </header>
 
@@ -227,7 +233,7 @@ export default function PaymentPage() {
             <CardHeader className="pb-3 sm:pb-6">
               <CardTitle className="text-base sm:text-lg">Assessment Summary</CardTitle>
               <CardDescription className="text-xs sm:text-sm">
-                Your submission is ready for professional review
+                Your submission is ready for review
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3 sm:space-y-4">
@@ -239,19 +245,19 @@ export default function PaymentPage() {
                 <div className="space-y-2 text-center sm:text-left">
                   <p className="text-xs sm:text-sm font-medium">Description provided</p>
                   <p className="text-xl sm:text-2xl font-bold text-brand-blue">
-                    {assessmentData.description ? '✓' : '✗'}
+                    {(assessmentData.additionalNotes || assessmentData.description || assessmentData.symptomTypes?.length > 0 || assessmentData.bodyLocation) ? 'Yes' : '-'}
                   </p>
                 </div>
               </div>
               
-              {assessmentData.description && (
+              {(assessmentData.additionalNotes || assessmentData.description) && (
                 <div className="border-t pt-3 sm:pt-4">
                   <p className="text-xs sm:text-sm font-medium mb-2">Your description:</p>
                   <p className="text-xs sm:text-sm text-slate-600 bg-slate-50 p-2 sm:p-3 rounded">
-                    {assessmentData.description.length > 100 
-                      ? assessmentData.description.substring(0, 100) + '...'
-                      : assessmentData.description
-                    }
+                    {(() => {
+                      const desc = assessmentData.additionalNotes || assessmentData.description || ''
+                      return desc.length > 100 ? desc.substring(0, 100) + '...' : desc
+                    })()}
                   </p>
                 </div>
               )}
@@ -263,23 +269,23 @@ export default function PaymentPage() {
             <CardHeader className="pb-3 sm:pb-6">
               <CardTitle className="flex items-center space-x-2 text-base sm:text-lg">
                 <CreditCard className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span>Professional Analysis</span>
+                <span>Skin Analysis</span>
               </CardTitle>
               <CardDescription className="text-xs sm:text-sm">
-                One-time payment for comprehensive skin health assessment
+                One-time payment
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 sm:space-y-6">
               <div className="text-center">
                 <div className="text-2xl sm:text-3xl font-bold text-brand-blue">
-                  {currencyLoading ? '$19.95 USD' : formatPrice(userCurrency)}
+                  {currencyLoading ? '£6' : formatPrice(userCurrency)}
                 </div>
               </div>
 
               <div className="space-y-3 sm:space-y-4">
                 <div className="flex items-center space-x-3">
                   <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 flex-shrink-0" />
-                  <span className="text-xs sm:text-sm">Results within 24-48 hours</span>
+                  <span className="text-xs sm:text-sm">Results within 2-4 hours</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <Users className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 flex-shrink-0" />
@@ -295,10 +301,9 @@ export default function PaymentPage() {
                 <h4 className="font-medium text-blue-900 mb-2 text-sm sm:text-base">What you'll receive:</h4>
                 <ul className="text-xs sm:text-sm text-blue-800 space-y-1">
                   <li>• Preliminary skin health analysis</li>
-                  <li>• Root-cause recommendations (hydration, diet, lifestyle)</li>
+                  <li>• Root-cause possibilities</li>
                   <li>• Product suggestions only when necessary</li>
                   <li>• Optional dermatologist referral if needed</li>
-                  <li>• Downloadable wellness guide</li>
                 </ul>
               </div>
 

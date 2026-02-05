@@ -5,18 +5,45 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { ArrowLeft, Shield, CheckCircle, User, CreditCard, FileText, Clock, Mail } from "lucide-react"
+import { ArrowLeft, Shield, CheckCircle, User, CreditCard, FileText, Clock, Mail, LogOut } from "lucide-react"
 import Link from "next/link"
 import { detectUserCurrency, formatDermatologistPrice } from '@/lib/currency'
 import { stripePromise } from '@/lib/stripe'
 import { useAuth } from '@/components/providers/auth-provider'
+import { useRouter } from 'next/navigation'
+import { auth } from '@/firebase'
+import { signOut } from 'firebase/auth'
 
 export default function DermatologistReviewPage() {
   const { user } = useAuth()
+  const router = useRouter()
   const [additionalInfo, setAdditionalInfo] = useState('')
+  const [guestEmail, setGuestEmail] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [userCurrency, setUserCurrency] = useState<'USD' | 'CHF' | 'EUR' | 'GBP' | 'CAD' | 'AUD' | 'JPY' | 'SEK' | 'NOK' | 'DKK'>('USD')
   const [currencyLoading, setCurrencyLoading] = useState(true)
+  
+  // Helper: Check if user is anonymous (guest)
+  const isAnonymousUser = user?.isAnonymous === true
+  
+  // Helper: Get the email to use
+  const getEmail = (): string => {
+    if (user?.email) return user.email
+    if (isAnonymousUser && guestEmail) return guestEmail
+    return ''
+  }
+  
+  // Helper: Validate email format
+  const isValidEmail = (email: string): boolean => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+  }
+  
+  // Helper: Check if form can be submitted
+  const canSubmit = (): boolean => {
+    if (isLoading) return false
+    const email = getEmail()
+    return isValidEmail(email)
+  }
 
   // Load user currency
   useEffect(() => {
@@ -38,8 +65,9 @@ export default function DermatologistReviewPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!user?.email) {
-      alert('Please log in to continue')
+    const email = getEmail()
+    if (!email || !isValidEmail(email)) {
+      alert('Please enter a valid email address')
       return
     }
 
@@ -54,13 +82,13 @@ export default function DermatologistReviewPage() {
         },
         body: JSON.stringify({
           appointmentData: {
-            patientName: user.email?.split('@')[0] || 'User', // Use email prefix as name
-            patientEmail: user.email,
+            patientName: email.split('@')[0] || 'User', // Use email prefix as name
+            patientEmail: email,
             additionalInfo,
             serviceType: 'anonymous_case_review',
             submissionDate: new Date().toISOString(),
           },
-          userEmail: user.email,
+          userEmail: email,
           currency: userCurrency
         })
       })
@@ -72,14 +100,11 @@ export default function DermatologistReviewPage() {
       }
 
       // Redirect to Stripe checkout
-      console.log('Loading Stripe...')
       const stripe = await stripePromise
       
       if (!stripe) {
         throw new Error('Failed to load Stripe.js')
       }
-
-      console.log('Redirecting to checkout...')
       const { error } = await stripe.redirectToCheckout({
         sessionId: data.id,
       })
@@ -114,10 +139,29 @@ export default function DermatologistReviewPage() {
               </div>
             </Link>
             
-            <Link href="/success" className="text-sm text-gray-600 hover:text-gray-900 flex items-center">
-              <ArrowLeft className="h-4 w-4 mr-1" />
-              Back to Success
-            </Link>
+            <div className="flex items-center space-x-4">
+              <Link href="/success" className="text-sm text-gray-600 hover:text-gray-900 flex items-center">
+                <ArrowLeft className="h-4 w-4 mr-1" />
+                Back to Success
+              </Link>
+              <button
+                onClick={async () => {
+                  if (auth) {
+                    try {
+                      await signOut(auth)
+                      window.location.href = '/login'
+                    } catch (error) {
+                      console.error('Logout failed:', error)
+                      window.location.href = '/login'
+                    }
+                  }
+                }}
+                className="text-sm text-gray-500 hover:text-gray-700 flex items-center"
+              >
+                <LogOut className="w-4 h-4 mr-1" />
+                Logout
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -132,7 +176,7 @@ export default function DermatologistReviewPage() {
           </h1>
           <p className="text-base sm:text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
             A certified dermatologist will examine your preliminary report, photos and case details. 
-            No live call required — just expert answers within 48-72 hours.
+            No live call required: just expert answers within 48-72 hours.
           </p>
         </div>
 
@@ -157,7 +201,7 @@ export default function DermatologistReviewPage() {
                 <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
                   <Shield className="h-6 w-6 text-purple-600" />
                 </div>
-                <p className="text-sm font-medium text-gray-900">Private and secure — no ID or video call needed</p>
+                <p className="text-sm font-medium text-gray-900">Private and secure: no ID or video call needed</p>
               </div>
             </div>
           </CardContent>
@@ -178,7 +222,7 @@ export default function DermatologistReviewPage() {
                   </div>
                   <div className="flex items-center">
                     <Shield className="h-4 w-4 mr-1 text-green-600" />
-                    <span>Board-certified</span>
+                    <span>Certified</span>
                   </div>
                   <div className="flex items-center">
                     <CheckCircle className="h-4 w-4 mr-1 text-green-600" />
@@ -244,12 +288,37 @@ export default function DermatologistReviewPage() {
                 </ul>
               </div>
 
+              {/* Email input for anonymous/guest users */}
+              {isAnonymousUser && (
+                <div className="space-y-2 pt-2 border-t border-gray-200">
+                  <Label htmlFor="guestEmail" className="text-sm font-medium text-gray-700 flex items-center">
+                    <Mail className="w-4 h-4 mr-2 text-teal-600" />
+                    Email for your results
+                  </Label>
+                  <Input
+                    id="guestEmail"
+                    type="email"
+                    value={guestEmail}
+                    onChange={(e) => setGuestEmail(e.target.value)}
+                    placeholder="your@email.com"
+                    className={`border-2 ${guestEmail && !isValidEmail(guestEmail) ? 'border-red-300' : 'border-gray-300'} bg-white font-medium placeholder:text-gray-400 focus-visible:ring-teal-500 focus-visible:border-teal-500`}
+                    required
+                  />
+                  <p className="text-xs text-gray-500">
+                    Used only to send your dermatologist report. No marketing.
+                  </p>
+                  {guestEmail && !isValidEmail(guestEmail) && (
+                    <p className="text-xs text-red-500">Please enter a valid email address</p>
+                  )}
+                </div>
+              )}
+
               {/* Submit Button */}
               <div className="pt-4">
                 <Button
                   type="submit"
-                  disabled={isLoading || !user?.email}
-                  className="w-full bg-teal-700 hover:bg-teal-800 text-white py-3 text-lg font-medium shadow-lg"
+                  disabled={!canSubmit()}
+                  className="w-full bg-teal-700 hover:bg-teal-800 text-white py-3 text-lg font-medium shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? (
                     <div className="flex items-center justify-center">
@@ -264,7 +333,7 @@ export default function DermatologistReviewPage() {
                   )}
                 </Button>
                 <p className="text-xs text-gray-500 text-center mt-2">
-                  You'll receive an email confirmation with your reference number and next steps.
+                  You'll receive an email confirmation with your reference number and next steps within 24hrs.
                 </p>
               </div>
             </form>
@@ -279,12 +348,8 @@ export default function DermatologistReviewPage() {
               <span>SSL Encrypted</span>
             </div>
             <div className="flex items-center">
-              <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
-              <span>HIPAA Compliant</span>
-            </div>
-            <div className="flex items-center">
               <User className="h-4 w-4 mr-2 text-green-600" />
-              <span>Board-Certified Dermatologists</span>
+              <span>Certified Dermatologists</span>
             </div>
             <div className="flex items-center">
               <Mail className="h-4 w-4 mr-2 text-green-600" />
@@ -301,7 +366,7 @@ export default function DermatologistReviewPage() {
               <p className="text-sm text-gray-600 leading-relaxed">
                 Your case review is completely anonymous. No personal identifying details are required. 
                 All communications are encrypted and secure. The dermatologist will only see your photos, 
-                preliminary report, and any additional information you provide.
+                preliminary report & any additional context, NOT your name, email address or any other personally identifiable information.
               </p>
             </div>
           </CardContent>
