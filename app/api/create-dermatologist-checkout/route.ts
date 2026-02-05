@@ -122,8 +122,6 @@ function validateAppointmentData(data: any): { valid: boolean; reason?: string }
 
 export async function POST(req: NextRequest) {
   try {
-    console.log('=== Dermatologist Checkout Session API Called (SECURITY PROTECTED) ===')
-    
     // Apply rate limiting for payment endpoints
     const rateLimitResult = await rateLimit(req, 'checkout')
     if (!rateLimitResult.success) {
@@ -132,12 +130,6 @@ export async function POST(req: NextRequest) {
     }
 
     const { appointmentData, userEmail, currency = 'USD' } = await req.json()
-
-    console.log('Request data (sanitized):', { 
-      userEmail: userEmail ? 'present' : 'missing', 
-      currency, 
-      hasAppointmentData: !!appointmentData 
-    })
 
     // Validate required data
     if (!appointmentData || !userEmail) {
@@ -167,7 +159,6 @@ export async function POST(req: NextRequest) {
 
     // Get and validate price
     const priceInfo = convertDermatologistPrice(currency as SupportedCurrency)
-    console.log('Price calculation:', { currency, ...priceInfo })
 
     // Validate consultation amount against expected ranges
     if (!validateConsultationAmount(currency, priceInfo.cents)) {
@@ -185,8 +176,6 @@ export async function POST(req: NextRequest) {
         message: 'Consultation amount does not match expected price'
       }, { status: 400 })
     }
-
-    console.log('✅ Consultation validation passed - creating Stripe session')
 
     // Generate appointment ID for reference
     const appointmentId = `appointment_${Date.now()}_${patientEmail.replace('@', '_').replace('.', '_')}`
@@ -247,11 +236,8 @@ export async function POST(req: NextRequest) {
       }
     })
 
-    console.log('✅ Stripe session created:', session.id)
-
     // Enhanced Firestore save with security logging
     try {
-      console.log('Attempting to save appointment to Firestore...')
       const { doc, setDoc } = await import('firebase/firestore')
       const { firestore } = await import('@/firebase')
       
@@ -284,7 +270,6 @@ export async function POST(req: NextRequest) {
           new Promise((_, reject) => setTimeout(() => reject(new Error('Firestore timeout')), 5000))
         ])
         
-        console.log('✅ Saved appointment to Firestore successfully')
       } else {
         console.warn('⚠️ Firestore not available, skipping save')
       }
@@ -293,7 +278,6 @@ export async function POST(req: NextRequest) {
       // Don't fail the whole request if Firestore fails
     }
 
-    console.log('✅ Returning session ID:', session.id)
     return NextResponse.json({ 
       id: session.id,
       rateLimitRemaining: rateLimitResult.remaining

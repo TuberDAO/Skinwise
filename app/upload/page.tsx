@@ -318,45 +318,27 @@ export default function UploadPage() {
     
     const uploadedUrls: string[] = []
     
-    console.log(`Starting upload of ${files.length} files...`)
-    
     for (let i = 0; i < files.length; i++) {
       const file = files[i]
       if (!file.uploaded && file.file) {
         try {
-          console.log(`Uploading file ${i + 1}/${files.length}: ${file.file.name} (${formatFileSize(file.file.size)})`)
-          
           const sanitizedFileName = file.file.name.replace(/[^a-zA-Z0-9.-]/g, '_')
           const storageRef = ref(storage, `assessments/${user.uid}/${Date.now()}_${sanitizedFileName}`)
           
-          console.log(`Storage reference: ${storageRef.fullPath}`)
-          
           const snapshot = await uploadBytes(storageRef, file.file)
-          console.log(`File ${i + 1} uploaded successfully, getting download URL...`)
-          
           const downloadURL = await getDownloadURL(snapshot.ref)
           uploadedUrls.push(downloadURL)
-          
-          console.log(`File ${i + 1} complete: ${downloadURL.substring(0, 50)}...`)
         } catch (error) {
-          console.error(`Failed to upload file ${i + 1} (${file.file.name}):`, error)
+          console.error(`Upload failed for file ${i + 1}`)
           throw new Error(`Failed to upload file "${file.file.name}": ${error instanceof Error ? error.message : 'Unknown error'}`)
         }
       }
     }
     
-    console.log(`All ${uploadedUrls.length} files uploaded successfully`)
     return uploadedUrls
   }
 
   const handleSubmit = async () => {
-    console.log('=== Form Submission Started (SECURITY PROTECTED) ===')
-    console.log('Files:', files.length)
-    console.log('User email:', user?.email)
-    console.log('User ID:', user?.uid)
-    console.log('Firebase auth:', !!auth)
-    console.log('Firebase firestore:', !!firestore)
-    console.log('Firebase storage:', !!storage)
 
     try {
       // Enhanced file validation with security checks
@@ -374,7 +356,6 @@ export default function UploadPage() {
       }
 
       // Log successful file validation
-      console.log('✅ All files passed security validation')
       logFileUploadAttempt(user?.uid || 'unknown', fileObjects, validationResult.results, true)
 
       // Validate required fields
@@ -405,14 +386,10 @@ export default function UploadPage() {
         return
       }
 
-      console.log('=== All validations passed, starting secure upload ===')
-
       setUploading(true)
       
       // Enhanced file upload with security
-      console.log('Starting secure file upload...')
       const uploadedUrls = await uploadFilesSecurely()
-      console.log('Files uploaded successfully:', uploadedUrls.length, 'files')
       
       // Create assessment document in Firestore with enhanced security
       const reportEmail = getReportEmail()
@@ -445,17 +422,12 @@ export default function UploadPage() {
         }
       }
       
-      console.log('Saving assessment to Firestore...', {
-        email: assessmentData.email,
-        filesCount: assessmentData.files.length,
-        userId: assessmentData.userId,
-        securityChecks: 'passed'
-      })
+      // Saving assessment to Firestore
       
       // Save to Firestore assessments collection
       const docRef = await addDoc(collection(firestore, 'assessments'), assessmentData)
       
-      console.log('Assessment saved to Firestore with ID:', docRef.id)
+      // Assessment saved successfully
       
       // Store assessment data with document ID for payment flow
       const assessmentDataWithId = {
@@ -465,14 +437,10 @@ export default function UploadPage() {
       }
       
       if (typeof window !== 'undefined') {
-        console.log('Saving to sessionStorage...')
         sessionStorage.setItem('pendingAssessment', JSON.stringify(assessmentDataWithId))
         // Clear the upload state since we're moving to payment
         localStorage.removeItem('uploadState')
-        console.log('SessionStorage updated, localStorage cleared')
       }
-      
-      console.log('=== Upload successful, redirecting to payment ===')
       
       // Use window.location for more reliable navigation
       window.location.href = '/payment'
@@ -527,20 +495,13 @@ export default function UploadPage() {
 
     const uploadedUrls: string[] = []
     
-    console.log(`🔒 Starting secure upload of ${files.length} files`)
-    console.log(`🔒 User type: ${user.isAnonymous ? 'Anonymous/Guest' : 'Authenticated'}`)
-    
     for (let i = 0; i < files.length; i++) {
       const fileData = files[i]
       
       try {
-        console.log(`Uploading file ${i + 1}/${files.length}: ${fileData.file.name} (${formatFileSize(fileData.file.size)})`)
-        
         // Use secure upload path
         const securePath = createSecureUploadPath(user.uid, fileData.file.name)
         const storageRef = ref(storage, securePath)
-        
-        console.log(`🔒 Secure storage path: ${storageRef.fullPath}`)
         
         // Upload with metadata
         const metadata = {
@@ -554,16 +515,12 @@ export default function UploadPage() {
           }
         }
         
-        console.log(`📤 Starting uploadBytes for file ${i + 1}...`)
-        console.log(`📤 File details: size=${fileData.file.size}, type=${fileData.file.type}`)
-        
         // Add 30 second timeout to upload
         const snapshot = await withTimeout(
           uploadBytes(storageRef, fileData.file, metadata),
           30000,
           'Upload timed out after 30 seconds. Please check your connection and Firebase Storage permissions.'
         )
-        console.log(`✅ File ${i + 1} uploadBytes completed, getting download URL...`)
         
         const downloadURL = await withTimeout(
           getDownloadURL(snapshot.ref),
@@ -571,15 +528,12 @@ export default function UploadPage() {
           'Failed to get download URL. Please try again.'
         )
         uploadedUrls.push(downloadURL)
-        
-        console.log(`✅ File ${i + 1} complete: ${downloadURL.substring(0, 50)}...`)
       } catch (error) {
-        console.error(`❌ Failed to upload file ${i + 1} (${fileData.file.name}):`, error)
+        console.error(`Upload failed for file ${i + 1}`)
         throw new Error(`Failed to upload file "${fileData.file.name}": ${error instanceof Error ? error.message : 'Unknown error'}`)
       }
     }
     
-    console.log(`✅ All ${uploadedUrls.length} files uploaded securely`)
     return uploadedUrls
   }
 
@@ -1063,9 +1017,6 @@ export default function UploadPage() {
                     <span>Continue: £6</span>
                   )}
                 </Button>
-                <p className="text-xs text-center text-slate-500 mt-3">
-                  Dermatologist review available after results (typically £25)
-                </p>
               </div>
 
               {/* Auth status display */}

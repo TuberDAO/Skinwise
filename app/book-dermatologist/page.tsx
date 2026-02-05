@@ -100,14 +100,11 @@ export default function DermatologistReviewPage() {
       }
 
       // Redirect to Stripe checkout
-      console.log('Loading Stripe...')
       const stripe = await stripePromise
       
       if (!stripe) {
         throw new Error('Failed to load Stripe.js')
       }
-
-      console.log('Redirecting to checkout...')
       const { error } = await stripe.redirectToCheckout({
         sessionId: data.id,
       })

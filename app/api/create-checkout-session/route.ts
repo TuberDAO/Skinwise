@@ -79,8 +79,6 @@ function validateAssessmentData(data: any): { valid: boolean; reason?: string } 
 
 export async function POST(req: NextRequest) {
   try {
-    console.log('=== Checkout Session API Called (SECURITY PROTECTED) ===')
-    
     // Apply rate limiting for payment endpoints
     const rateLimitResult = await rateLimit(req, 'checkout')
     if (!rateLimitResult.success) {
@@ -89,13 +87,6 @@ export async function POST(req: NextRequest) {
     }
 
     const { assessmentData, userId, userEmail, currency = 'USD' } = await req.json()
-
-    console.log('Request data (sanitized):', { 
-      userId: userId ? 'present' : 'missing', 
-      userEmail: userEmail ? 'present' : 'missing', 
-      currency, 
-      hasAssessmentData: !!assessmentData 
-    })
 
     // Validate required data
     if (!assessmentData || !userId) {
@@ -119,7 +110,6 @@ export async function POST(req: NextRequest) {
 
     // Get and validate price
     const priceInfo = convertPrice(currency as SupportedCurrency)
-    console.log('Price calculation:', { currency, ...priceInfo })
 
     // Validate payment amount against expected ranges
     if (!validatePaymentAmount(currency, priceInfo.cents)) {
@@ -138,7 +128,6 @@ export async function POST(req: NextRequest) {
       }, { status: 400 })
     }
 
-    console.log('✅ Payment validation passed - creating Stripe session')
 
     // Create Stripe checkout session with enhanced security
     const session = await stripe.checkout.sessions.create({
@@ -189,11 +178,8 @@ export async function POST(req: NextRequest) {
       }
     })
 
-    console.log('✅ Stripe session created:', session.id)
-
     // Enhanced Firestore save with security logging
     try {
-      console.log('Attempting to save to Firestore...')
       const { doc, setDoc } = await import('firebase/firestore')
       const { firestore } = await import('@/firebase')
       
@@ -227,7 +213,6 @@ export async function POST(req: NextRequest) {
           new Promise((_, reject) => setTimeout(() => reject(new Error('Firestore timeout')), 5000))
         ])
         
-        console.log('✅ Saved to Firestore successfully')
       } else {
         console.warn('⚠️ Firestore not available, skipping save')
       }
@@ -236,7 +221,6 @@ export async function POST(req: NextRequest) {
       // Don't fail the whole request if Firestore fails
     }
 
-    console.log('✅ Returning session ID:', session.id)
     return NextResponse.json({ 
       id: session.id,
       rateLimitRemaining: rateLimitResult.remaining

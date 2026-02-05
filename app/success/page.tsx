@@ -20,13 +20,11 @@ export default function SuccessPage() {
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search)
       const sessionIdFromUrl = urlParams.get('session_id')
-      console.log('🎯 SUCCESS PAGE: Session ID detected:', sessionIdFromUrl)
       setSessionId(sessionIdFromUrl)
       
       // Clear session storage to prevent any redirect loops
       sessionStorage.removeItem('pendingAssessment')
       sessionStorage.removeItem('uploadState')
-      console.log('🧹 SUCCESS PAGE: Cleared all session storage')
       
       // Try to get user email safely without dependencies
       try {
@@ -34,23 +32,18 @@ export default function SuccessPage() {
         const { user } = useAuth()
         if (user?.email) {
           setUserEmail(user.email)
-          console.log('👤 SUCCESS PAGE: User email loaded:', user.email)
         }
       } catch (error) {
-        console.log('⚠️ SUCCESS PAGE: Could not load user email, using fallback')
         setUserEmail('User')
       }
       
       setIsLoaded(true)
-      console.log('✅ SUCCESS PAGE: Page fully loaded and stable')
     }
   }, [])
 
   // CRITICAL: Prevent any redirects if we have a session_id
   useEffect(() => {
     if (sessionId) {
-      console.log('🔒 SUCCESS PAGE: Session ID present, preventing all redirects')
-      
       // Override any potential redirect attempts by other code
       const originalPush = window.history.pushState
       const originalReplace = window.history.replaceState
@@ -59,7 +52,6 @@ export default function SuccessPage() {
         if (url) {
           const urlStr = typeof url === 'string' ? url : url.toString()
           if (urlStr.includes('/upload') || urlStr.includes('/login') || urlStr.includes('/payment')) {
-            console.log('🚫 SUCCESS PAGE: Blocked redirect to:', urlStr)
             return
           }
         }
@@ -70,7 +62,6 @@ export default function SuccessPage() {
         if (url) {
           const urlStr = typeof url === 'string' ? url : url.toString()
           if (urlStr.includes('/upload') || urlStr.includes('/login') || urlStr.includes('/payment')) {
-            console.log('🚫 SUCCESS PAGE: Blocked redirect to:', urlStr)
             return
           }
         }
@@ -187,7 +178,7 @@ export default function SuccessPage() {
                 <div className="bg-blue-50 border-l-4 border-blue-400 p-6 rounded-r-lg">
                   <div className="space-y-3 text-blue-900">
                     <p>
-                      <strong>A downloadable PDF in plain English</strong> of the preliminary assessment & a letter for your dermatologist or Doctor.
+                      <strong>A downloadable PDF in plain English</strong> of the analysis & a detailed letter for your dermatologist or Doctor.
                     </p>
                     <p>
                       <strong>Option to submit your case anonymously</strong> for detailed examination by a Certified Dermatologist.

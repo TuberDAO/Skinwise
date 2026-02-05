@@ -42,15 +42,12 @@ export default function PaymentPage() {
     // Only run after component is mounted and user auth is resolved
     if (!isClientSide || authLoading || !user) return
 
-    console.log('PaymentPage: Checking for assessment data and session_id...')
-    
     // Check if we're being accessed with a session_id (indicating successful payment)
     const urlParams = new URLSearchParams(window.location.search)
     const sessionId = urlParams.get('session_id')
     
     if (sessionId) {
       // If there's a session_id, we should redirect to success page instead
-      console.log('PaymentPage: Found session_id, should redirect to success page')
       setShouldRedirect(`/success?session_id=${sessionId}`)
       return
     }
@@ -58,11 +55,9 @@ export default function PaymentPage() {
     // Get assessment data from session storage
     const data = sessionStorage.getItem('pendingAssessment')
     if (data) {
-      console.log('PaymentPage: Found assessment data')
       setAssessmentData(JSON.parse(data))
     } else {
       // Only redirect back to upload if no data AND no session_id
-      console.log('PaymentPage: No assessment data found, should redirect to upload')
       setShouldRedirect('/upload')
     }
   }, [isClientSide, authLoading, user])
@@ -70,7 +65,6 @@ export default function PaymentPage() {
   // Handle redirects in a separate useEffect to avoid render conflicts
   useEffect(() => {
     if (shouldRedirect) {
-      console.log('PaymentPage: Redirecting to:', shouldRedirect)
       const timeoutId = setTimeout(() => {
         router.push(shouldRedirect)
       }, 100) // Small delay to avoid render conflicts
@@ -123,7 +117,6 @@ export default function PaymentPage() {
 
     try {
       setLoading(true)
-      console.log('Starting payment process...', { userId: user.uid, assessmentData, currency: userCurrency })
       
       // Create checkout session with detected currency
       const response = await fetch('/api/create-checkout-session', {
@@ -139,11 +132,8 @@ export default function PaymentPage() {
         }),
       })
 
-      console.log('API response status:', response.status)
-      
       // Get response text first for better error handling
       const responseText = await response.text()
-      console.log('API response text:', responseText)
 
       if (!response.ok) {
         throw new Error(`API Error (${response.status}): ${responseText}`)
@@ -159,17 +149,12 @@ export default function PaymentPage() {
         throw new Error('No session ID returned from API')
       }
 
-      console.log('Checkout session created:', session.id)
-
       // Redirect to Stripe Checkout
-      console.log('Loading Stripe...')
       const stripe = await stripePromise
       
       if (!stripe) {
         throw new Error('Failed to load Stripe.js')
       }
-
-      console.log('Redirecting to checkout...')
       const { error } = await stripe.redirectToCheckout({
         sessionId: session.id,
       })

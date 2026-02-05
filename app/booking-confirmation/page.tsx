@@ -15,7 +15,6 @@ export default function BookingConfirmationPage() {
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search)
       const sessionIdFromUrl = urlParams.get('session_id')
-      console.log('🎯 BOOKING CONFIRMATION: Session ID detected:', sessionIdFromUrl)
       setSessionId(sessionIdFromUrl)
       
       // In a real app, you'd fetch appointment details from your backend using the session ID

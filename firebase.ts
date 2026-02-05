@@ -30,15 +30,6 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-// TEMPORARY DEBUG LOG - Remove after fixing env vars
-console.log('[Firebase Debug] Config check:', {
-  apiKeyPrefix: firebaseConfig.apiKey ? firebaseConfig.apiKey.substring(0, 6) : 'EMPTY',
-  apiKeyLength: firebaseConfig.apiKey ? firebaseConfig.apiKey.length : 0,
-  authDomain: firebaseConfig.authDomain || 'EMPTY',
-  projectId: firebaseConfig.projectId || 'EMPTY',
-  isPlaceholder: firebaseConfig.apiKey?.includes('PASTE') || firebaseConfig.apiKey?.includes('your') ? 'YES - INVALID' : 'NO'
-});
-
 // Initialize Firebase app (prevent reinitialization) with error handling
 let app: FirebaseApp;
 let auth: Auth | null = null;
@@ -53,7 +44,6 @@ try {
     auth = getAuth(app);
     firestore = getFirestore(app);
     storage = getStorage(app);
-    console.log('Firebase services initialized successfully');
   }
 } catch (error) {
   console.error('Firebase initialization failed:', error);
@@ -83,9 +73,7 @@ export const signInWithGoogle = async () => {
   }
   
   try {
-    console.log('Starting Google sign-in process...');
     const result = await signInWithPopup(auth, googleProvider);
-    console.log('Google sign-in successful:', result.user?.email);
     return result;
   } catch (error: any) {
     console.error('Google sign-in failed:', error);
@@ -118,9 +106,7 @@ export const signInWithEmail = async (email: string, password: string) => {
   }
   
   try {
-    console.log('Starting email sign-in process...');
     const result = await signInWithEmailAndPassword(auth, email, password);
-    console.log('Email sign-in successful:', result.user?.email);
     return result;
   } catch (error: any) {
     console.error('Email sign-in failed:', error);
@@ -159,9 +145,7 @@ export const registerWithEmail = async (email: string, password: string) => {
   }
   
   try {
-    console.log('Starting email registration process...');
     const result = await createUserWithEmailAndPassword(auth, email, password);
-    console.log('Email registration successful:', result.user?.email);
     return result;
   } catch (error: any) {
     console.error('Email registration failed:', error);
@@ -197,9 +181,7 @@ export const signInAnon = async () => {
   }
   
   try {
-    console.log('Starting anonymous sign-in process...');
     const result = await signInAnonymously(auth);
-    console.log('Anonymous sign-in successful:', result.user?.uid);
     return result;
   } catch (error: any) {
     console.error('Anonymous sign-in failed:', error);
@@ -223,9 +205,7 @@ export const signOut = async () => {
   }
   
   try {
-    console.log('Signing out user...');
     await firebaseSignOut(auth);
-    console.log('Sign out successful');
   } catch (error: any) {
     console.error('Sign out failed:', error);
     throw new Error(`Sign out failed: ${error.message || 'Unknown error'}`);
