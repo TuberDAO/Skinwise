@@ -3,8 +3,8 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { CheckCircle, Shield, UserCheck, Stethoscope, Menu, X, ChevronDown, HelpCircle, Quote, User } from "lucide-react"
-import { useState, useEffect } from "react"
+import { CheckCircle, Shield, UserCheck, Stethoscope, Menu, X, ChevronDown, HelpCircle, Quote, User, FileText } from "lucide-react"
+import { useState, useEffect, useCallback } from "react"
 import { detectUserCurrency, formatPrice, formatDermatologistPrice } from '@/lib/currency'
 
 export default function LandingPage() {
@@ -12,6 +12,7 @@ export default function LandingPage() {
   const [openFAQ, setOpenFAQ] = useState<number | null>(null)
   const [userCurrency, setUserCurrency] = useState<'USD' | 'CHF' | 'EUR' | 'GBP' | 'CAD' | 'AUD' | 'JPY' | 'SEK' | 'NOK' | 'DKK'>('USD')
   const [currencyLoading, setCurrencyLoading] = useState(true)
+  const [exampleModal, setExampleModal] = useState<'patient' | 'doctor' | null>(null)
 
   useEffect(() => {
     const loadCurrency = async () => {
@@ -34,6 +35,25 @@ export default function LandingPage() {
   const toggleFAQ = (index: number) => {
     setOpenFAQ(openFAQ === index ? null : index)
   }
+
+  // Close modal on ESC key
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setExampleModal(null)
+    }
+    if (exampleModal) {
+      document.addEventListener('keydown', handleEsc)
+      document.body.style.overflow = 'hidden'
+    }
+    return () => {
+      document.removeEventListener('keydown', handleEsc)
+      document.body.style.overflow = 'unset'
+    }
+  }, [exampleModal])
+
+  const openExampleModal = useCallback((type: 'patient' | 'doctor') => {
+    setExampleModal(type)
+  }, [])
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -118,6 +138,12 @@ export default function LandingPage() {
             </Link>
             <Link 
               className="text-sm font-medium text-gray-600 hover:text-teal-700 transition-colors whitespace-nowrap" 
+              href="#example-reports"
+            >
+              Example Reports
+            </Link>
+            <Link 
+              className="text-sm font-medium text-gray-600 hover:text-teal-700 transition-colors whitespace-nowrap" 
               href="#faq"
             >
               FAQ
@@ -148,6 +174,13 @@ export default function LandingPage() {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 When to Use
+              </Link>
+              <Link 
+                className="block px-4 py-3 text-base font-medium text-gray-700 hover:text-teal-700 hover:bg-gray-50 rounded-md transition-colors" 
+                href="#example-reports"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Example Reports
               </Link>
               <Link 
                 className="block px-4 py-3 text-base font-medium text-gray-700 hover:text-teal-700 hover:bg-gray-50 rounded-md transition-colors" 
@@ -207,6 +240,35 @@ export default function LandingPage() {
               <p className="text-xs sm:text-sm text-gray-600 text-center">
                 {currencyLoading ? '£6' : formatPrice(userCurrency)} • Results in 2 to 4 hours
               </p>
+              <div className="flex flex-col items-center space-y-1 pt-1">
+                <Link 
+                  href="#example-reports" 
+                  className="text-xs text-teal-700 hover:text-teal-800 underline underline-offset-2 transition-colors"
+                >
+                  See example reports
+                </Link>
+                <div className="flex items-center justify-center space-x-3 text-xs text-gray-500">
+                  <button 
+                    onClick={() => {
+                      document.getElementById('example-reports')?.scrollIntoView({ behavior: 'smooth' })
+                      setTimeout(() => openExampleModal('patient'), 500)
+                    }}
+                    className="hover:text-teal-700 underline underline-offset-2 transition-colors"
+                  >
+                    Patient summary
+                  </button>
+                  <span>|</span>
+                  <button 
+                    onClick={() => {
+                      document.getElementById('example-reports')?.scrollIntoView({ behavior: 'smooth' })
+                      setTimeout(() => openExampleModal('doctor'), 500)
+                    }}
+                    className="hover:text-teal-700 underline underline-offset-2 transition-colors"
+                  >
+                    Doctor letter
+                  </button>
+                </div>
+              </div>
               <Link 
                 href="#testimonials" 
                 className="inline-block text-xs text-teal-700 hover:text-teal-800 underline underline-offset-2 transition-colors"
@@ -668,6 +730,96 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Example Reports Section */}
+      <section id="example-reports" className="bg-white scroll-mt-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
+          <div className="text-center space-y-8 sm:space-y-10">
+            {/* Section Header */}
+            <div className="space-y-3 sm:space-y-4 max-w-3xl mx-auto">
+              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900">
+                Example of What You'll Receive
+              </h2>
+              <p className="text-sm sm:text-base md:text-lg text-gray-600">
+                You will receive two letters in a similar format to the examples below, one written for you and one that you can give to your doctor.
+              </p>
+            </div>
+            
+            {/* Report Cards Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-4xl mx-auto">
+              {/* Patient Summary Card */}
+              <button
+                onClick={() => openExampleModal('patient')}
+                className="text-left group"
+              >
+                <Card className="bg-white shadow-md border-gray-200 hover:shadow-xl hover:border-teal-300 transition-all duration-300 h-full">
+                  <CardContent className="p-6 space-y-4">
+                    {/* Document Header */}
+                    <div className="flex items-center space-x-3 pb-3 border-b border-gray-100">
+                      <div className="w-10 h-10 bg-teal-100 rounded-lg flex items-center justify-center">
+                        <FileText className="h-5 w-5 text-teal-700" />
+                      </div>
+                      <div>
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-900">Patient Summary</h3>
+                        <p className="text-xs text-gray-500">(Plain English)</p>
+                      </div>
+                    </div>
+                    
+                    {/* Preview Content */}
+                    <div className="space-y-2 text-xs text-gray-500 leading-relaxed bg-gray-50 p-3 rounded-lg border border-gray-100">
+                      <p className="font-medium text-gray-700">Summary of Your Concern</p>
+                      <p className="line-clamp-2">Based on the photos you provided showing a mole on your forehead, we reviewed a pigmented skin lesion...</p>
+                      <p className="font-medium text-gray-700 pt-2">Key Observations</p>
+                      <p className="line-clamp-1">• Location: Forehead, near the hairline...</p>
+                    </div>
+                    
+                    {/* Click to expand */}
+                    <p className="text-xs text-teal-700 font-medium group-hover:text-teal-800 transition-colors flex items-center">
+                      Click to view full example
+                      <ChevronDown className="h-3 w-3 ml-1 -rotate-90" />
+                    </p>
+                  </CardContent>
+                </Card>
+              </button>
+
+              {/* Doctor Letter Card */}
+              <button
+                onClick={() => openExampleModal('doctor')}
+                className="text-left group"
+              >
+                <Card className="bg-white shadow-md border-gray-200 hover:shadow-xl hover:border-teal-300 transition-all duration-300 h-full">
+                  <CardContent className="p-6 space-y-4">
+                    {/* Document Header */}
+                    <div className="flex items-center space-x-3 pb-3 border-b border-gray-100">
+                      <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <Stethoscope className="h-5 w-5 text-blue-700" />
+                      </div>
+                      <div>
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-900">Doctor Letter</h3>
+                        <p className="text-xs text-gray-500">(Medical Format)</p>
+                      </div>
+                    </div>
+                    
+                    {/* Preview Content */}
+                    <div className="space-y-2 text-xs text-gray-500 leading-relaxed bg-gray-50 p-3 rounded-lg border border-gray-100">
+                      <p className="font-medium text-gray-700">RE: Pigmented lesion of the forehead</p>
+                      <p className="line-clamp-2">Dear Doctor, Thank you for reviewing this patient, who presents with a pigmented lesion...</p>
+                      <p className="font-medium text-gray-700 pt-2">Clinical impression</p>
+                      <p className="line-clamp-1">The lesion demonstrates several reassuring features...</p>
+                    </div>
+                    
+                    {/* Click to expand */}
+                    <p className="text-xs text-teal-700 font-medium group-hover:text-teal-800 transition-colors flex items-center">
+                      Click to view full example
+                      <ChevronDown className="h-3 w-3 ml-1 -rotate-90" />
+                    </p>
+                  </CardContent>
+                </Card>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Final CTA Section - Fixed Mobile Layout */}
       <section className="bg-teal-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
@@ -741,6 +893,180 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
+
+      {/* Example Report Modal */}
+      {exampleModal && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          onClick={() => setExampleModal(null)}
+        >
+          <div 
+            className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-gray-200 bg-gray-50">
+              <div className="flex items-center space-x-3">
+                {exampleModal === 'patient' ? (
+                  <>
+                    <div className="w-8 h-8 bg-teal-100 rounded-lg flex items-center justify-center">
+                      <FileText className="h-4 w-4 text-teal-700" />
+                    </div>
+                    <div>
+                      <h3 className="text-base sm:text-lg font-semibold text-gray-900">Patient Summary</h3>
+                      <p className="text-xs text-gray-500">Plain English Format</p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <Stethoscope className="h-4 w-4 text-blue-700" />
+                    </div>
+                    <div>
+                      <h3 className="text-base sm:text-lg font-semibold text-gray-900">Doctor Letter</h3>
+                      <p className="text-xs text-gray-500">Medical Format</p>
+                    </div>
+                  </>
+                )}
+              </div>
+              <button
+                onClick={() => setExampleModal(null)}
+                className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
+                aria-label="Close modal"
+              >
+                <X className="h-5 w-5 text-gray-500" />
+              </button>
+            </div>
+            
+            {/* Modal Content */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+              {exampleModal === 'patient' ? (
+                <div className="space-y-5 text-sm sm:text-base text-gray-700 leading-relaxed">
+                  {/* Patient Summary Content */}
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-800">
+                    <strong>Note:</strong> This is an illustrative template for demonstration purposes only.
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">Summary of Your Concern</h4>
+                    <p>
+                      Based on the photos you provided showing a mole on your forehead, we reviewed a pigmented skin lesion that you reported has slowly changed over time. You noted that it appears to have grown slightly and darkened over approximately 10 months.
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">Key Observations</h4>
+                    <ul className="list-disc list-inside space-y-1 text-gray-600">
+                      <li>Location: Forehead, near the hairline</li>
+                      <li>Appearance: Small brown mole with an even colour and smooth outline</li>
+                      <li>Shape: Appears generally symmetrical</li>
+                      <li>Surface: Looks flat to slightly raised, without crusting or bleeding</li>
+                      <li>Duration: Long-standing, with gradual change reported over approximately 10 months</li>
+                      <li>Associated symptoms: No pain, bleeding, ulceration, or irritation reported</li>
+                    </ul>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">Most Likely Possibilities</h4>
+                    <ul className="list-disc list-inside space-y-1 text-gray-600">
+                      <li>A benign mole that has slowly evolved over time, which is common on sun-exposed areas such as the face</li>
+                      <li>A sun-related pigment spot that may darken gradually over months or years</li>
+                      <li>An early atypical mole, which is less likely based on appearance but should be checked because change has occurred</li>
+                    </ul>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">What to Do Next</h4>
+                    <ul className="list-disc list-inside space-y-1 text-gray-600">
+                      <li>Consider booking a routine appointment with your Doctor or a dermatologist</li>
+                      <li>Bring the Doctor's Letter provided to help clearly explain the history and timeline of change</li>
+                      <li>Your Doctor may examine the mole with magnification and advise whether monitoring or removal is appropriate</li>
+                      <li>Take follow-up photos if you notice further changes</li>
+                    </ul>
+                  </div>
+                  
+                  <div className="bg-teal-50 border border-teal-200 rounded-lg p-3">
+                    <p className="text-teal-800 text-sm">
+                      Based on the appearance and slow rate of change, this does not appear urgent, but checking any changing mole is the safest approach.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-5 text-sm sm:text-base text-gray-700 leading-relaxed">
+                  {/* Doctor Letter Content - UK NHS / GMC Style */}
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-800">
+                    <strong>Note:</strong> This is an illustrative template for demonstration purposes only.
+                  </div>
+                  
+                  <div className="border-b border-gray-300 pb-2">
+                    <p className="font-semibold text-gray-900">RE: Pigmented lesion of the forehead</p>
+                  </div>
+                  
+                  <div>
+                    <p>Dear Doctor,</p>
+                    <p className="mt-2">
+                      Thank you for reviewing this patient, who presents with a pigmented lesion on the forehead reported to have slowly increased in size and darkened over approximately 10 months.
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">History:</h4>
+                    <ul className="list-disc list-inside space-y-1 text-gray-600">
+                      <li>Long-standing mole with gradual change</li>
+                      <li>No reported bleeding, ulceration, pain, pruritus, or inflammation</li>
+                      <li>Concern relates specifically to slow evolution over time</li>
+                    </ul>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">Examination (based on submitted images):</h4>
+                    <ul className="list-disc list-inside space-y-1 text-gray-600">
+                      <li>Small brown melanocytic lesion on the forehead near the hairline</li>
+                      <li>Appears symmetrical with smooth, well-defined borders</li>
+                      <li>Colour appears relatively uniform without obvious variegation</li>
+                      <li>No visible crusting, ulceration, or secondary change</li>
+                    </ul>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">Clinical impression:</h4>
+                    <p>
+                      The lesion demonstrates several reassuring features. However, given the documented change over time and facial location, in-person clinical assessment is appropriate. The appearance is more suggestive of benign melanocytic evolution or sun-related pigmentation, though atypical change cannot be excluded without examination.
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">Suggested assessment:</h4>
+                    <p>
+                      Routine clinical review is recommended. Dermoscopic examination and clinical photography may be helpful. Excision or biopsy only if clinically indicated following in-person assessment.
+                    </p>
+                  </div>
+                  
+                  <div className="pt-4 border-t border-gray-200">
+                    <p className="mt-4">Yours sincerely,</p>
+                    <p className="font-medium">Skinwiseapp Clinical Review</p>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            {/* Modal Footer */}
+            <div className="px-4 sm:px-6 py-4 border-t border-gray-200 bg-gray-50">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <p className="text-xs text-gray-500">
+                  Illustrative template for demonstration
+                </p>
+                <Button
+                  onClick={() => setExampleModal(null)}
+                  className="bg-teal-700 hover:bg-teal-800 text-white text-sm py-2 px-4"
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 } 
