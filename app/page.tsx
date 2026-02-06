@@ -221,7 +221,7 @@ export default function LandingPage() {
                 <span className="text-teal-700">reviewed by a human</span>
               </h1>
               <h2 className="text-xs sm:text-sm md:text-base lg:text-lg text-gray-700 leading-relaxed max-w-2xl mx-auto">
-                Upload 1 to 4 photos and a short description. We'll send a clear summary + a doctor-friendly note if needed.
+                Upload photos & a short description. We'll send a clear analysis + a doctor-friendly note. <strong>Private by default</strong>, no names shared with reviewers.
               </h2>
             </div>
 
