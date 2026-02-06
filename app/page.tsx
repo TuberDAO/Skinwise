@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { CheckCircle, Shield, UserCheck, Stethoscope, Menu, X, ChevronDown, HelpCircle, Quote, User, FileText } from "lucide-react"
+import { CheckCircle, Shield, UserCheck, Stethoscope, Menu, X, ChevronDown, HelpCircle, Quote, User, FileText, Lock, UserX } from "lucide-react"
 import { useState, useEffect, useCallback } from "react"
 import { detectUserCurrency, formatPrice, formatDermatologistPrice } from '@/lib/currency'
 
@@ -204,18 +204,18 @@ export default function LandingPage() {
       {/* Hero Section - Trust-Forward, Clinical */}
       <section className="bg-gradient-to-br from-slate-50 via-white to-teal-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-5 lg:py-8">
-          <div className="text-center space-y-3 sm:space-y-4">
-            {/* How to Use Graphic - Compact */}
-            <div className="w-full max-w-[92%] sm:max-w-sm md:max-w-lg lg:max-w-xl mx-auto px-2 sm:px-0">
+          <div className="text-center space-y-2 sm:space-y-3">
+            {/* How to Use Graphic - Mobile-first, wider on small screens */}
+            <div className="w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl mx-auto px-2 sm:px-0">
               <img 
                 src="/how-to-use-skinwise.png" 
                 alt="How to use SkinWise - Take a photo, Send securely, results reviewed by a human" 
-                className="w-full h-auto object-contain max-h-32 sm:max-h-40 md:max-h-48 lg:max-h-56 xl:max-h-64 drop-shadow-lg rounded-lg sm:rounded-xl shadow-sm"
+                className="w-full h-auto object-contain max-h-40 sm:max-h-52 md:max-h-64 lg:max-h-72 xl:max-h-80 rounded-xl sm:rounded-2xl shadow-sm"
               />
             </div>
 
             {/* Headlines - Trust-forward, clinical */}
-            <div className="space-y-1 sm:space-y-2 max-w-4xl mx-auto">
+            <div className="space-y-1 sm:space-y-1.5 max-w-4xl mx-auto">
               <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900 leading-tight">
                 Fast skin photo assessment:{" "}
                 <span className="text-teal-700">reviewed by a human</span>
@@ -223,6 +223,9 @@ export default function LandingPage() {
               <h2 className="text-xs sm:text-sm md:text-base lg:text-lg text-gray-700 leading-relaxed max-w-2xl mx-auto">
                 Upload photos & a short description. We'll send a clear analysis + a doctor-friendly note. <strong>Private by default</strong>, no names shared with reviewers.
               </h2>
+              <p className="text-xs sm:text-xs md:text-sm text-gray-500 max-w-2xl mx-auto">
+                One-time assessment fee. No subscription.
+              </p>
             </div>
 
             {/* AI mention - demoted to secondary text */}
@@ -234,12 +237,36 @@ export default function LandingPage() {
             <div className="max-w-sm mx-auto space-y-1.5">
               <Link href="/login">
                 <Button className="w-full bg-teal-700 hover:bg-teal-800 text-white text-sm sm:text-base py-2.5 sm:py-3 px-6 shadow-lg transition-colors">
-                  Start Skin Assessment
+                  Start Secure Skin Assessment
                 </Button>
               </Link>
               <p className="text-xs sm:text-sm text-gray-600 text-center">
                 {currencyLoading ? '£6' : formatPrice(userCurrency)} • Results in 2 to 4 hours
               </p>
+              <p className="text-xs text-gray-500 text-center leading-snug">
+                If your concern appears urgent, we will clearly advise in-person care.
+              </p>
+              
+              {/* Trust Indicators - Compact */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 pt-2 pb-1 max-w-md mx-auto">
+                <div className="flex items-center justify-center sm:justify-start space-x-1.5">
+                  <Lock className="h-3.5 w-3.5 text-gray-700 flex-shrink-0" />
+                  <span className="text-xs font-medium text-gray-800">Encrypted uploads</span>
+                </div>
+                <div className="flex items-center justify-center sm:justify-start space-x-1.5">
+                  <UserX className="h-3.5 w-3.5 text-gray-700 flex-shrink-0" />
+                  <span className="text-xs font-medium text-gray-800">Anonymous option</span>
+                </div>
+                <div className="flex items-center justify-center sm:justify-start space-x-1.5">
+                  <Shield className="h-3.5 w-3.5 text-gray-700 flex-shrink-0" />
+                  <span className="text-xs font-medium text-gray-800">Private by default</span>
+                </div>
+                <div className="flex items-center justify-center sm:justify-start space-x-1.5">
+                  <UserCheck className="h-3.5 w-3.5 text-gray-700 flex-shrink-0" />
+                  <span className="text-xs font-medium text-gray-800">Human reviewed</span>
+                </div>
+              </div>
+              
               <div className="flex flex-col items-center space-y-1 pt-1">
                 <Link 
                   href="#example-reports" 
