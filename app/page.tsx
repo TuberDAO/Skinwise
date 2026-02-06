@@ -67,7 +67,7 @@ export default function LandingPage() {
               <img 
                 src="/skinwise-logo.png.png" 
                 alt="SkinWise App" 
-                className="h-7 w-auto"
+                className="h-12 w-auto"
               />
               <div className="hidden xs:block">
                 <h1 className="text-sm font-bold text-gray-900 leading-tight">
@@ -110,7 +110,7 @@ export default function LandingPage() {
             <img 
               src="/skinwise-logo.png.png" 
               alt="SkinWise App" 
-              className="h-12 w-auto"
+              className="h-16 w-auto"
             />
             <div>
               <h1 className="text-xl font-bold text-gray-900">
