@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAuth } from '@/components/providers/auth-provider'
-import { Heart, CreditCard, Shield, Clock, Users, LogOut } from "lucide-react"
+import { Heart, CreditCard, Shield, Clock, Users, LogOut, CheckCircle } from "lucide-react"
 import Link from "next/link"
 import { stripePromise } from '@/lib/stripe'
 import { auth } from '@/firebase'
@@ -226,6 +226,15 @@ export default function PaymentPage() {
             <p className="text-sm sm:text-base text-slate-600 px-2">
               Secure payment for professional skin health analysis
             </p>
+          </div>
+
+          {/* Upload success confirmation */}
+          <div className="flex items-center space-x-2.5 bg-green-50 border border-green-200 rounded-lg px-4 py-3">
+            <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
+            <div>
+              <p className="text-sm font-medium text-green-800">Photos uploaded successfully</p>
+              <p className="text-xs text-green-600">Quality looks good for review.</p>
+            </div>
           </div>
 
           {/* Assessment Summary */}
