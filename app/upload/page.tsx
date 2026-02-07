@@ -47,6 +47,8 @@ export default function UploadPage() {
   const [productUsage, setProductUsage] = useState('')
   const [lifestyleTriggers, setLifestyleTriggers] = useState<string[]>([])
   const [lifestyleNotes, setLifestyleNotes] = useState('')
+  const [ageRange, setAgeRange] = useState<string | null>(null)
+  const [sex, setSex] = useState<string | null>(null)
   const [guestEmail, setGuestEmail] = useState('')
   const [uploading, setUploading] = useState(false)
   const [userCurrency, setUserCurrency] = useState<SupportedCurrency>('USD')
@@ -399,6 +401,8 @@ export default function UploadPage() {
         isAnonymous: isAnonymousUser,
         timestamp: serverTimestamp(),
         // Structured questionnaire data
+        ageRange: ageRange,
+        sex: sex,
         symptomTypes: symptomTypes,
         bodyLocation: bodyLocation.trim().substring(0, 100),
         duration: symptomDuration.trim().substring(0, 100),
@@ -625,8 +629,11 @@ export default function UploadPage() {
                 <Camera className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span>Photos ({files.length}/4)</span>
               </CardTitle>
-              <CardDescription className="text-xs sm:text-sm">
-                Upload clear, well-lit photos from different angles if possible
+              <CardDescription className="text-xs sm:text-sm space-y-1">
+                <span className="block">Upload clear, well-lit photos from different angles if possible</span>
+                <span className="block text-sm sm:text-base font-bold">
+                  PLEASE ENSURE PHOTOS ARE IN FOCUS, NOT BLURRED.
+                </span>
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3 sm:space-y-4">
@@ -747,7 +754,46 @@ export default function UploadPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-5 sm:space-y-6">
-              
+
+              {/* Optional demographics - compact row */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                <div className="space-y-1">
+                  <Label htmlFor="ageRange" className="text-sm text-slate-700">Age range <span className="text-slate-400 font-normal">(optional)</span></Label>
+                  <select
+                    id="ageRange"
+                    value={ageRange || ''}
+                    onChange={(e) => setAgeRange(e.target.value || null)}
+                    className="w-full rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                  >
+                    <option value="">Select...</option>
+                    <option value="18-24">18–24</option>
+                    <option value="25-34">25–34</option>
+                    <option value="35-44">35–44</option>
+                    <option value="45-54">45–54</option>
+                    <option value="55-64">55–64</option>
+                    <option value="65-74">65–74</option>
+                    <option value="75+">75+</option>
+                    <option value="prefer-not-to-say">Prefer not to say</option>
+                  </select>
+                  <p className="text-xs text-slate-400">Helps tailor likely causes and risk.</p>
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="sex" className="text-sm text-slate-700">Sex <span className="text-slate-400 font-normal">(optional)</span></Label>
+                  <select
+                    id="sex"
+                    value={sex || ''}
+                    onChange={(e) => setSex(e.target.value || null)}
+                    className="w-full rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                  >
+                    <option value="">Select...</option>
+                    <option value="female">Female</option>
+                    <option value="male">Male</option>
+                    <option value="prefer-not-to-say">Prefer not to say</option>
+                  </select>
+                  <p className="text-xs text-slate-400">Some conditions vary by sex.</p>
+                </div>
+              </div>
+
               {/* 1. Symptom Type - Multi-select chips */}
               <div className="space-y-2">
                 <Label className="font-semibold text-sm sm:text-base">What are you experiencing? <span className="text-slate-500 font-normal">(select all that apply)</span></Label>
