@@ -29,8 +29,8 @@ export default function LandingPage() {
     loadCurrency()
   }, [])
 
-  const getBasePrice = () => currencyLoading ? '£6' : formatPrice(userCurrency)
-  const getDermatologistPrice = () => currencyLoading ? '£25' : formatDermatologistPrice(userCurrency)
+  const getBasePrice = () => currencyLoading ? '£19.97' : formatPrice(userCurrency)
+  const getDermatologistPrice = () => currencyLoading ? '£35' : formatDermatologistPrice(userCurrency)
 
   const toggleFAQ = (index: number) => {
     setOpenFAQ(openFAQ === index ? null : index)
@@ -241,7 +241,10 @@ export default function LandingPage() {
                 </Button>
               </Link>
               <p className="text-xs sm:text-sm text-gray-600 text-center">
-                {currencyLoading ? '£6' : formatPrice(userCurrency)} • Results in 2 to 4 hours
+                {currencyLoading ? '£19.97' : formatPrice(userCurrency)} • Results in 2 to 4 hours
+              </p>
+              <p className="text-xs text-gray-700 text-center font-bold leading-snug">
+                One-time assessment fee. No subscription.
               </p>
               <p className="text-xs text-gray-500 text-center leading-snug">
                 If your concern appears urgent, we will clearly advise in-person care.
@@ -613,7 +616,7 @@ export default function LandingPage() {
                   a: "You'll receive:\nA detailed PDF report that includes an AI-assisted analysis based on your submitted photos and description, written in clear, everyday language to help you understand your skin concern.\nA medically formatted letter for your Doctor or dermatologist, written in clinical terms.\nResults delivered within 2-4 hours directly to your email."
                 },
                 {
-                  q: "Can I get a certified dermatologist to review my case?",
+                  q: "Can I get a certified dermatologist to review my case in more detail?",
                   a: `Yes. After your initial results, you can request a more detailed review by a certified dermatologist for ${getDermatologistPrice()}. You'll receive an expert evaluation, clinical letter, and next steps; typically within 1 to 2 days.`
                 },
                 {
@@ -968,110 +971,193 @@ export default function LandingPage() {
             {/* Modal Content */}
             <div className="flex-1 overflow-y-auto p-4 sm:p-6">
               {exampleModal === 'patient' ? (
-                <div className="space-y-5 text-sm sm:text-base text-gray-700 leading-relaxed">
-                  {/* Patient Summary Content */}
+                <div className="space-y-5 text-sm sm:text-base text-gray-700 leading-relaxed max-w-3xl">
                   <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-800">
                     <strong>Note:</strong> This is an illustrative template for demonstration purposes only.
                   </div>
-                  
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Summary of Your Concern</h4>
-                    <p>
-                      Based on the photos you provided showing a mole on your forehead, we reviewed a pigmented skin lesion that you reported has slowly changed over time. You noted that it appears to have grown slightly and darkened over approximately 10 months.
-                    </p>
-                  </div>
-                  
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Key Observations</h4>
+                  <div className="prose prose-sm max-w-none text-justify space-y-4 [&_p]:mb-3 [&_h4]:mt-6 [&_h4]:mb-2 [&_ul]:my-3">
+                    <h4 className="font-semibold text-gray-900 mb-2">RE: SkinWiseApp Examination Report and Attached Doctor Letter</h4>
+                    <p>Dear SkinWiseApp Customer,</p>
+                    <p>Thank you for sending your photographs and the background information about your skin.</p>
+                    <p>Based on the images you provided and the information included in your submission form, the overall appearance most strongly suggests tinea faciei, which is a fungal infection affecting the skin of the face.</p>
+                    <p>A fungal infection means that microscopic organisms called dermatophytes are growing in the outer layer of the skin. Dermatophytes are fungi that feed on keratin, which is the protein found in the outer layer of skin, hair, and nails. When these organisms grow on the skin they can cause red patches, scaling, and itching.</p>
+                    <p>This condition is sometimes called facial ringworm, although there is no worm involved. The name comes from the circular shape that the rash often forms on the skin.</p>
+                    <p>The important positive point is that this condition is very common, very treatable, and usually clears completely once the correct treatment is started.</p>
+                    <p>To be clear, the list below is not saying that you definitely have several conditions at the same time. It is simply a ranked list of the most likely explanations based on the photographs and the information you provided.</p>
+                    <h4 className="font-semibold text-gray-900 mt-4 mb-2">Most likely possibilities</h4>
+                    <p><strong>Tinea faciei (facial fungal infection) about 80 percent likely</strong></p>
+                    <p>This is the most likely explanation. Tinea faciei is caused by dermatophyte fungi growing in the outer layer of facial skin. These infections usually appear as round or oval red patches with a slightly raised edge and a clearer centre.</p>
+                    <p>This diagnosis fits because the patch on your skin appears circular with a more inflamed outer border and mild surface scaling. The edge of the rash looks more active than the centre, which is a classic pattern for fungal skin infections.</p>
+                    <p><strong>Nummular eczema about 12 percent likely</strong></p>
+                    <p>Nummular eczema is a form of eczema that produces round patches of inflamed skin. The word nummular means coin shaped. These patches can look similar to fungal infections but usually have less clearly defined borders and tend to be more generally dry across the whole patch.</p>
+                    <p><strong>Granuloma annulare about 8 percent likely</strong></p>
+                    <p>Granuloma annulare is a skin condition where small clusters of immune cells form ring shaped patterns in the skin. These patches are typically smooth rather than scaly. Because your patch appears slightly scaly and irritated, this possibility is less likely.</p>
+                    <p>In simpler terms, the appearance of the rash most strongly suggests a superficial fungal infection rather than eczema or another inflammatory condition.</p>
+                    <h4 className="font-semibold text-gray-900 mt-4 mb-2">What I can see in the photographs</h4>
+                    <p>From the images alone, I can see:</p>
                     <ul className="list-disc list-inside space-y-1 text-gray-600">
-                      <li>Location: Forehead, near the hairline</li>
-                      <li>Appearance: Small brown mole with an even colour and smooth outline</li>
-                      <li>Shape: Appears generally symmetrical</li>
-                      <li>Surface: Looks flat to slightly raised, without crusting or bleeding</li>
-                      <li>Duration: Long-standing, with gradual change reported over approximately 10 months</li>
-                      <li>Associated symptoms: No pain, bleeding, ulceration, or irritation reported</li>
+                      <li>a round red patch on the facial skin</li>
+                      <li>a slightly raised and more inflamed border around the patch</li>
+                      <li>mild scaling and dryness across the surface</li>
+                      <li>a centre that appears slightly calmer than the outer edge</li>
+                      <li>a pattern that commonly occurs with superficial fungal infections</li>
                     </ul>
-                  </div>
-                  
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Most Likely Possibilities</h4>
+                    <p>I do not see thick yellow crusting, pus filled spots, or blistering in the photographs. That makes a bacterial infection less likely at this stage.</p>
+                    <h4 className="font-semibold text-gray-900 mt-4 mb-2">About fungal skin infections</h4>
+                    <p>Fungal skin infections occur when dermatophyte fungi grow in the outermost layer of the skin. These organisms are very common and can be picked up through contact with infected skin, animals, shared towels, bedding, gym equipment, or sometimes from fungal infections on other parts of the body such as the feet.</p>
+                    <p>The infection stays in the outer layer of the skin but can slowly spread outward if untreated.</p>
+                    <p>The reassuring news is that once antifungal treatment is started, most cases improve significantly within one to two weeks and usually clear fully within about three to four weeks. Even before treatment is started, following the advice below can help reduce irritation and slow the spread.</p>
+                    <h4 className="font-semibold text-gray-900 mt-4 mb-2">Why the shape of the rash matters</h4>
+                    <p>Fungal infections tend to expand slowly from the centre outward. The outer edge is where the fungus is actively growing, which is why that area often looks redder and slightly raised. The centre may look calmer because the infection has already moved outward from that area.</p>
+                    <h4 className="font-semibold text-gray-900 mt-4 mb-2">Product by product advice</h4>
+                    <p>During the information submission stage you mentioned that you are currently using several skincare products. These products are discussed below only because you listed them in your submission. SkinWiseApp is not recommending these products. The comments below are simply guidance on whether it may be sensible to continue or pause them while the rash is present.</p>
+                    <p><strong>CeraVe Moisturising Cream</strong></p>
+                    <p>This is the one product that may be reasonable to continue using because it is a simple moisturiser designed to support the skin barrier. The skin barrier refers to the outer protective layer of skin that helps prevent dryness, irritation, and water loss.</p>
+                    <p><strong>How to use CeraVe Moisturising Cream in this situation</strong></p>
+                    <p>Wash your hands first.</p>
+                    <p>Clean the face gently using lukewarm water and a mild cleanser if needed. Pat the skin dry with a clean towel rather than rubbing it.</p>
+                    <p>Squeeze out a small amount of the cream about the size of a small pea onto a clean fingertip.</p>
+                    <p>Gently spread the cream onto the surrounding dry skin on the face using light movements. The goal is to moisturise the surrounding skin rather than cover the active rash heavily.</p>
+                    <p>Try to leave a small gap of a few millimetres around the outer edge of the rash so the cream does not sit directly on the most inflamed border.</p>
+                    <p>Do not rub the cream in aggressively. Instead lightly smooth it across the skin until it forms a thin layer.</p>
+                    <p>Use the cream once in the morning and once in the evening if the surrounding skin feels dry or tight.</p>
+                    <p>Wash your hands again after applying it so that any organisms on the skin are not transferred to other areas.</p>
+                    <p><strong>Paula&apos;s Choice 2 percent BHA Liquid Exfoliant</strong></p>
+                    <p>I would stop using this product for now.</p>
+                    <p>BHA stands for beta hydroxy acid, which is a chemical exfoliant used to remove dead skin cells and treat acne. Exfoliating acids can irritate inflamed skin and may worsen redness and stinging if applied to an active rash.</p>
+                    <p><strong>Tea tree oil spot treatment</strong></p>
+                    <p>I would also stop this for now.</p>
+                    <p>Tea tree oil has antimicrobial properties, but it can irritate facial skin and sometimes cause contact dermatitis, which is a skin reaction caused by irritation or allergy. Applying essential oils directly to inflamed skin can increase irritation.</p>
+                    <h4 className="font-semibold text-gray-900 mt-4 mb-2">Makeup and daily activities</h4>
+                    <p>Many people ask whether they can continue wearing makeup. If possible, it is best to avoid makeup directly over the rash while the skin is healing, especially heavy foundations or concealers. These can trap moisture and irritate the skin.</p>
+                    <p>If makeup is needed for work or social reasons, try to keep it minimal and avoid applying it directly onto the affected patch. Use clean brushes or applicators and wash them regularly to reduce the chance of spreading the infection.</p>
+                    <p>You can otherwise continue most normal daily activities. The infection is usually mild and does not affect general health.</p>
+                    <h4 className="font-semibold text-gray-900 mt-4 mb-2">What to avoid for now</h4>
+                    <p>For the next several days I would avoid:</p>
                     <ul className="list-disc list-inside space-y-1 text-gray-600">
-                      <li>A benign mole that has slowly evolved over time, which is common on sun-exposed areas such as the face</li>
-                      <li>A sun-related pigment spot that may darken gradually over months or years</li>
-                      <li>An early atypical mole, which is less likely based on appearance but should be checked because change has occurred</li>
+                      <li>exfoliating acids</li>
+                      <li>scrubs or abrasive cleansers</li>
+                      <li>essential oils on the face</li>
+                      <li>fragranced skincare</li>
+                      <li>heavy makeup over the rash</li>
+                      <li>trying several new skincare products at the same time</li>
+                      <li>sharing towels or pillowcases with others</li>
                     </ul>
-                  </div>
-                  
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">What to Do Next</h4>
+                    <p>The aim right now is to reduce irritation and prevent the rash from spreading further.</p>
+                    <h4 className="font-semibold text-gray-900 mt-4 mb-2">Practical steps that can help recovery</h4>
+                    <p>Change pillowcases every one to two days while the rash is active.</p>
+                    <p>Use a separate face towel and avoid sharing towels with other people.</p>
+                    <p>Wash hands after touching the rash.</p>
+                    <p>If you have athlete&apos;s foot or fungal infection on the feet, make sure that is treated as well because fungal infections can sometimes spread from one area of the body to another.</p>
+                    <p>Avoid scratching the rash because scratching can spread the infection to nearby skin.</p>
+                    <h4 className="font-semibold text-gray-900 mt-4 mb-2">What to do over the next few days</h4>
+                    <p>Keep the routine simple and gentle. Wash the face using lukewarm water and a mild cleanser if needed.</p>
+                    <p>Avoid exfoliating products and essential oils.</p>
+                    <p>Use a simple moisturiser on surrounding dry skin if needed.</p>
+                    <p>Arrange a medical review so the rash can be examined properly.</p>
+                    <p>A Doctor or Dermatologist may confirm the diagnosis by examining the rash closely. Sometimes a small skin scraping is taken and examined under a microscope to look for fungal organisms.</p>
+                    <h4 className="font-semibold text-gray-900 mt-4 mb-2">Do you need to see a Doctor or Dermatologist</h4>
+                    <p>Yes. I would recommend arranging an appointment with a Doctor or Dermatologist within the next few days.</p>
+                    <p>If this is a fungal infection, treatment usually involves antifungal creams. Antifungal medicines specifically kill dermatophyte fungi and allow the skin to heal.</p>
+                    <p>Most people start to notice improvement within one to two weeks after starting treatment, and the skin usually returns to normal over the following weeks.</p>
+                    <p>A Doctor or Dermatologist will also check that the rash is not another condition that can occasionally mimic fungal infections.</p>
+                    <p>A helpful way to explain the issue at the appointment would be:</p>
+                    <p>&quot;This patch on my face appeared recently and seems to be slowly expanding. It is slightly itchy and round with a red border. I have been advised that it may be a fungal infection called tinea faciei and would like it examined.&quot;</p>
+                    <p>If you cannot get a timely appointment</p>
+                    <p>If you cannot arrange a prompt appointment with a Doctor or Dermatologist, please let us know and we will organise a longer and more thorough dermatology review.</p>
+                    <h4 className="font-semibold text-gray-900 mt-4 mb-2">When you need faster help</h4>
+                    <p>Please seek urgent medical advice if any of the following occur:</p>
                     <ul className="list-disc list-inside space-y-1 text-gray-600">
-                      <li>Consider booking a routine appointment with your Doctor or a dermatologist</li>
-                      <li>Bring the Doctor's Letter provided to help clearly explain the history and timeline of change</li>
-                      <li>Your Doctor may examine the mole with magnification and advise whether monitoring or removal is appropriate</li>
-                      <li>Take follow-up photos if you notice further changes</li>
+                      <li>the rash spreads rapidly across the face</li>
+                      <li>the skin becomes very painful or swollen</li>
+                      <li>you develop pus, blistering, or severe crusting</li>
+                      <li>the rash spreads close to the eye area</li>
                     </ul>
-                  </div>
-                  
-                  <div className="bg-teal-50 border border-teal-200 rounded-lg p-3">
-                    <p className="text-teal-800 text-sm">
-                      Based on the appearance and slow rate of change, this does not appear urgent, but checking any changing mole is the safest approach.
-                    </p>
+                    <h4 className="font-semibold text-gray-900 mt-4 mb-2">Final summary</h4>
+                    <p>The appearance in the photographs is most consistent with tinea faciei, which is a fungal infection affecting the outer layer of facial skin. The other possibilities listed above are much less likely based on the pattern seen in the images.</p>
+                    <p>The positive news is that this condition is usually very treatable and temporary once the correct treatment is started.</p>
+                    <p>The most sensible next steps are:</p>
+                    <ul className="list-disc list-inside space-y-1 text-gray-600">
+                      <li>keep the skincare routine simple</li>
+                      <li>avoid exfoliating products and essential oils</li>
+                      <li>moisturise surrounding dry skin if needed</li>
+                      <li>avoid makeup directly over the rash</li>
+                      <li>arrange examination with a Doctor or Dermatologist</li>
+                    </ul>
+                    <p>Thank you for using SkinWiseApp and we wish you a quick recovery.</p>
+                    <p>Kind Regards</p>
+                    <p>SkinWiseApp Team</p>
                   </div>
                 </div>
               ) : (
-                <div className="space-y-5 text-sm sm:text-base text-gray-700 leading-relaxed">
-                  {/* Doctor Letter Content - UK NHS / GMC Style */}
+                <div className="space-y-5 text-sm sm:text-base text-gray-700 leading-relaxed max-w-3xl">
                   <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-800">
                     <strong>Note:</strong> This is an illustrative template for demonstration purposes only.
                   </div>
-                  
-                  <div className="border-b border-gray-300 pb-2">
-                    <p className="font-semibold text-gray-900">RE: Pigmented lesion of the forehead</p>
-                  </div>
-                  
-                  <div>
-                    <p>Dear Doctor,</p>
-                    <p className="mt-2">
-                      Thank you for reviewing this patient, who presents with a pigmented lesion on the forehead reported to have slowly increased in size and darkened over approximately 10 months.
-                    </p>
-                  </div>
-                  
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">History:</h4>
+                  <div className="prose prose-sm max-w-none text-justify space-y-4 [&_p]:mb-3 [&_h4]:mt-6 [&_h4]:mb-2 [&_ul]:my-3">
+                    <h4 className="font-semibold text-gray-900 mb-2">RE: SkinWiseApp Clinical Summary and Referral Information</h4>
+                    <p>Dear Doctor / Dermatologist,</p>
+                    <p>Thank you for reviewing this patient following an initial remote assessment performed through SkinWiseApp.</p>
+                    <p>The patient submitted facial photographs and a short clinical history through the SkinWiseApp platform. Based on the visual findings and the information provided, the working impression from the remote review is tinea faciei, a superficial dermatophyte infection of the facial skin. This letter summarises the observations and differential considerations to assist with clinical assessment.</p>
+                    <h4 className="font-semibold text-gray-900 mt-4 mb-2">Clinical summary</h4>
+                    <p>The patient submitted photographs demonstrating a solitary erythematous annular plaque on the facial skin. The lesion appears to show:</p>
                     <ul className="list-disc list-inside space-y-1 text-gray-600">
-                      <li>Long-standing mole with gradual change</li>
-                      <li>No reported bleeding, ulceration, pain, pruritus, or inflammation</li>
-                      <li>Concern relates specifically to slow evolution over time</li>
+                      <li>a well defined circular or oval erythematous plaque</li>
+                      <li>peripheral accentuation with a mildly raised inflammatory border</li>
+                      <li>fine superficial scaling across the lesion surface</li>
+                      <li>relative central clearing compared with the active border</li>
+                      <li>no visible pustulation, vesiculation, or honey coloured crusting</li>
                     </ul>
-                  </div>
-                  
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Examination (based on submitted images):</h4>
+                    <p>The lesion morphology and pattern of peripheral inflammatory activity are strongly suggestive of a dermatophyte infection involving the glabrous skin of the face, consistent with tinea faciei.</p>
+                    <p>There are no obvious visual features suggesting acute bacterial infection, impetiginisation, vesiculobullous disease, or severe inflammatory dermatosis in the images reviewed.</p>
+                    <h4 className="font-semibold text-gray-900 mt-4 mb-2">Differential diagnosis</h4>
+                    <p>Based on photographic assessment, the ranked diagnostic considerations were as follows.</p>
+                    <p><strong>Tinea faciei approximately 80 percent likelihood</strong></p>
+                    <p>Tinea faciei represents infection of facial skin by dermatophyte species, most commonly Trichophyton rubrum, Trichophyton mentagrophytes, or Microsporum species. The lesion morphology is consistent with a typical annular dermatophyte plaque demonstrating peripheral inflammatory activity and central clearing.</p>
+                    <p><strong>Nummular dermatitis approximately 12 percent likelihood</strong></p>
+                    <p>Nummular dermatitis may produce coin shaped erythematous plaques with scaling. However these lesions generally lack the sharply defined advancing border characteristic of dermatophyte infection and often demonstrate more uniform inflammation throughout the plaque.</p>
+                    <p><strong>Granuloma annulare approximately 8 percent likelihood</strong></p>
+                    <p>Granuloma annulare may produce annular plaques but typically presents with smooth dermal papules forming a ring and generally lacks surface scaling. The visible surface scale in this lesion makes granuloma annulare less likely.</p>
+                    <h4 className="font-semibold text-gray-900 mt-4 mb-2">Patient reported skincare products</h4>
+                    <p>During the submission process the patient reported current use of the following skincare products.</p>
                     <ul className="list-disc list-inside space-y-1 text-gray-600">
-                      <li>Small brown melanocytic lesion on the forehead near the hairline</li>
-                      <li>Appears symmetrical with smooth, well-defined borders</li>
-                      <li>Colour appears relatively uniform without obvious variegation</li>
-                      <li>No visible crusting, ulceration, or secondary change</li>
+                      <li>CeraVe Moisturising Cream</li>
+                      <li>Paula&apos;s Choice 2 percent BHA Liquid Exfoliant</li>
+                      <li>Tea tree oil spot treatment</li>
                     </ul>
-                  </div>
-                  
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Clinical impression:</h4>
-                    <p>
-                      The lesion demonstrates several reassuring features. However, given the documented change over time and facial location, in-person clinical assessment is appropriate. The appearance is more suggestive of benign melanocytic evolution or sun-related pigmentation, though atypical change cannot be excluded without examination.
-                    </p>
-                  </div>
-                  
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Suggested assessment:</h4>
-                    <p>
-                      Routine clinical review is recommended. Dermoscopic examination and clinical photography may be helpful. Excision or biopsy only if clinically indicated following in-person assessment.
-                    </p>
-                  </div>
-                  
-                  <div className="pt-4 border-t border-gray-200">
-                    <p className="mt-4">Yours sincerely,</p>
-                    <p className="font-medium">Skinwiseapp Clinical Review</p>
+                    <p>These products were referenced only because the patient reported their use. SkinWiseApp has not recommended these products.</p>
+                    <p>The patient was advised to temporarily discontinue exfoliating acids and essential oils due to the risk of irritant dermatitis or barrier disruption during active inflammation.</p>
+                    <p>A simple moisturiser was considered acceptable for surrounding skin barrier support provided it is not applied directly to the active lesion.</p>
+                    <h4 className="font-semibold text-gray-900 mt-4 mb-2">General advice given to the patient</h4>
+                    <p>The patient was advised to simplify the skincare routine and avoid potentially irritating topical agents including:</p>
+                    <ul className="list-disc list-inside space-y-1 text-gray-600">
+                      <li>beta hydroxy acid exfoliants</li>
+                      <li>essential oils</li>
+                      <li>fragranced products</li>
+                      <li>abrasive cleansers</li>
+                    </ul>
+                    <p>They were advised to maintain basic hygiene measures including avoiding sharing towels and changing pillowcases regularly, as dermatophyte transmission can occur through contaminated fabrics.</p>
+                    <h4 className="font-semibold text-gray-900 mt-4 mb-2">Clinical course and prognosis</h4>
+                    <p>The patient was advised that dermatophyte infections of facial skin are typically responsive to antifungal therapy and generally resolve within approximately two to four weeks once appropriate treatment is initiated.</p>
+                    <p>They were also advised that untreated lesions may gradually expand centrifugally and occasionally spread to adjacent skin areas.</p>
+                    <h4 className="font-semibold text-gray-900 mt-4 mb-2">Reason for medical review</h4>
+                    <p>Given that the assessment was conducted remotely and definitive diagnosis cannot be confirmed without examination, the patient has been advised to seek evaluation by a Doctor or Dermatologist for:</p>
+                    <ul className="list-disc list-inside space-y-1 text-gray-600">
+                      <li>direct clinical examination</li>
+                      <li>confirmation of diagnosis</li>
+                      <li>consideration of potassium hydroxide microscopy or fungal culture if clinically indicated</li>
+                      <li>initiation of appropriate antifungal therapy</li>
+                    </ul>
+                    <p>Typical management may include topical antifungal therapy such as terbinafine, clotrimazole, or ketoconazole, although treatment decisions are of course at the clinician&apos;s discretion.</p>
+                    <p>If the diagnosis is confirmed clinically, treatment with topical antifungal therapy for approximately two to four weeks would typically be expected to result in resolution.</p>
+                    <h4 className="font-semibold text-gray-900 mt-4 mb-2">Red flag guidance</h4>
+                    <p>The patient was advised to seek urgent care if there is rapid lesion expansion, marked inflammation, secondary infection, or extension toward the periorbital region.</p>
+                    <h4 className="font-semibold text-gray-900 mt-4 mb-2">Closing summary</h4>
+                    <p>In summary, the lesion morphology appears most consistent with tinea faciei, with other annular inflammatory dermatoses considered less likely based on the photographic findings.</p>
+                    <p>We would be grateful for your clinical evaluation and management of this patient.</p>
+                    <p>Please do not hesitate to contact SkinWiseApp if further information from the submission process would be helpful.</p>
+                    <p className="pt-4">Kind regards,</p>
+                    <p className="font-medium">SkinWiseApp Clinical Team</p>
                   </div>
                 </div>
               )}

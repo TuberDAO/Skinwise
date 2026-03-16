@@ -15,7 +15,7 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { auth, storage, firestore } from '@/firebase'
 import { signOut } from 'firebase/auth'
 import { formatFileSize } from '@/lib/utils'
-import { detectUserCurrency, formatPrice, getUserCurrencyFromLocale, type SupportedCurrency } from '@/lib/currency'
+import { detectUserCurrency, formatPrice, formatDermatologistPrice, getUserCurrencyFromLocale, type SupportedCurrency } from '@/lib/currency'
 import { validateFiles, logFileUploadAttempt, createSecureUploadPath } from '@/lib/file-validation'
 
 interface UploadedFile {
@@ -593,7 +593,7 @@ export default function UploadPage() {
                 <div>
                   <h3 className="text-sm sm:text-base font-semibold text-slate-900 flex items-center">
                     <CheckCircle className="w-4 h-4 text-teal-600 mr-2 flex-shrink-0" />
-                    Included today (£6): Same-day AI + human review
+                    Included today ({currencyLoading ? '£19.97' : formatPrice(userCurrency)}): Same-day AI + human review
                   </h3>
                   <ul className="mt-2 ml-6 space-y-1 text-xs sm:text-sm text-slate-600">
                     <li>• Plain-English summary of what your photos most likely show (and what it may not be)</li>
@@ -605,7 +605,7 @@ export default function UploadPage() {
                 {/* Optional Upgrade */}
                 <div className="pt-2 border-t border-slate-100">
                   <h4 className="text-xs sm:text-sm font-medium text-slate-700">
-                    Optional upgrade after results (typically ~£25): Dermatologist review
+                    Optional upgrade after results (typically {currencyLoading ? '£35' : formatDermatologistPrice(userCurrency)}): Dermatologist review
                   </h4>
                   <ul className="mt-1 ml-0 space-y-0.5 text-xs text-slate-500">
                     <li>• Dermatologist reviews your case and refines the assessment</li>
@@ -1014,7 +1014,7 @@ export default function UploadPage() {
                       <span>Processing...</span>
                     </div>
                   ) : (
-                    <span>Continue: £6</span>
+                    <span>Continue: {currencyLoading ? '£19.97' : formatPrice(userCurrency)}</span>
                   )}
                 </Button>
               </div>

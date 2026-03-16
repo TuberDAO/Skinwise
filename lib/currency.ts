@@ -15,8 +15,8 @@ export const SUPPORTED_CURRENCIES = {
 export type SupportedCurrency = keyof typeof SUPPORTED_CURRENCIES
 
 // Base prices in GBP (primary currency)
-export const BASE_PRICE_GBP = 6.00
-export const DERMATOLOGIST_PRICE_GBP = 25.00
+export const BASE_PRICE_GBP = 19
+export const DERMATOLOGIST_PRICE_GBP = 35
 
 // IP-based currency detection with browser locale fallback
 export const detectUserCurrency = async (): Promise<SupportedCurrency> => {
@@ -154,7 +154,7 @@ export const detectUserCurrency = async (): Promise<SupportedCurrency> => {
   }
 }
 
-// Convert price to user's currency (base price is £6 GBP)
+// Convert price to user's currency (base price is £19 GBP)
 export function convertPrice(currency: SupportedCurrency): { amount: number, cents: number, symbol: string } {
   const currencyInfo = SUPPORTED_CURRENCIES[currency]
   const gbpRate = SUPPORTED_CURRENCIES['GBP'].rate
@@ -169,19 +169,9 @@ export function convertPrice(currency: SupportedCurrency): { amount: number, cen
     convertedAmount = usdAmount * currencyInfo.rate
   }
   
-  // For non-US currencies, round up to whole numbers
-  let amount: number
-  if (currency === 'USD') {
-    amount = Math.round(convertedAmount * 100) / 100
-  } else if (currency === 'JPY') {
-    amount = Math.ceil(convertedAmount) // JPY already has no decimals, just round up
-  } else if (currency === 'GBP') {
-    amount = BASE_PRICE_GBP // Keep original GBP price
-  } else {
-    amount = Math.ceil(convertedAmount) // Round up to next whole number for all other currencies
-  }
-  
-  const cents = Math.round(amount * 100)
+  // Floor to whole number for all currencies — displayed price and charged amount always match
+  const amount = Math.floor(convertedAmount)
+  const cents = amount * 100
   
   return {
     amount,
@@ -190,7 +180,7 @@ export function convertPrice(currency: SupportedCurrency): { amount: number, cen
   }
 }
 
-// Convert dermatologist price to user's currency (base price is £110 GBP)
+// Convert dermatologist price to user's currency (base price is £35 GBP)
 export function convertDermatologistPrice(currency: SupportedCurrency): { amount: number, cents: number, symbol: string } {
   const currencyInfo = SUPPORTED_CURRENCIES[currency]
   const gbpRate = SUPPORTED_CURRENCIES['GBP'].rate
@@ -205,19 +195,9 @@ export function convertDermatologistPrice(currency: SupportedCurrency): { amount
     convertedAmount = usdAmount * currencyInfo.rate
   }
   
-  // For non-US currencies, round up to whole numbers
-  let amount: number
-  if (currency === 'USD') {
-    amount = Math.round(convertedAmount * 100) / 100
-  } else if (currency === 'JPY') {
-    amount = Math.ceil(convertedAmount) // JPY already has no decimals, just round up
-  } else if (currency === 'GBP') {
-    amount = DERMATOLOGIST_PRICE_GBP // Keep original GBP price
-  } else {
-    amount = Math.ceil(convertedAmount) // Round up to next whole number for all other currencies
-  }
-  
-  const cents = Math.round(amount * 100)
+  // Floor to whole number for all currencies — displayed price and charged amount always match
+  const amount = Math.floor(convertedAmount)
+  const cents = amount * 100
   
   return {
     amount,
@@ -226,32 +206,22 @@ export function convertDermatologistPrice(currency: SupportedCurrency): { amount
   }
 }
 
-// Format currency for display
+// Format currency for display — whole numbers only for all currencies
 export function formatPrice(currency: SupportedCurrency): string {
   const { amount, symbol } = convertPrice(currency)
-  
-  if (currency === 'USD') {
-    return `${symbol}${amount.toFixed(2)}`
-  } else if (currency === 'JPY') {
+  if (currency === 'JPY') {
     return `${symbol}${amount.toLocaleString()}`
-  } else if (currency === 'GBP') {
-    return `${symbol}${Math.round(amount)}` // £6 format
-  } else {
-    return `${symbol}${amount}` // No decimals for non-US currencies (already rounded up)
   }
+  return `${symbol}${amount}`
 }
 
-// Format dermatologist price for display
+// Format dermatologist price for display — whole numbers only for all currencies
 export function formatDermatologistPrice(currency: SupportedCurrency): string {
   const { amount, symbol } = convertDermatologistPrice(currency)
-  
-  if (currency === 'USD') {
-    return `${symbol}${amount.toFixed(2)}`
-  } else if (currency === 'JPY') {
+  if (currency === 'JPY') {
     return `${symbol}${amount.toLocaleString()}`
-  } else {
-    return `${symbol}${amount}` // No decimals for non-US currencies (already rounded up)
   }
+  return `${symbol}${amount}`
 }
 
 // Get currency from user's location (client-side)

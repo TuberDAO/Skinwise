@@ -278,7 +278,7 @@ export default function PaymentPage() {
             <CardContent className="space-y-4 sm:space-y-6">
               <div className="text-center">
                 <div className="text-2xl sm:text-3xl font-bold text-brand-blue">
-                  {currencyLoading ? '£6' : formatPrice(userCurrency)}
+                  {currencyLoading ? '£19.97' : formatPrice(userCurrency)}
                 </div>
               </div>
 

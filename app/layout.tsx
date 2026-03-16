@@ -32,12 +32,14 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
+      { url: '/skinwise-owl.png', sizes: 'any' },
       { url: '/favicon.ico', sizes: 'any' },
       { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
       { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
       { url: '/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
     ],
     apple: [
+      { url: '/skinwise-owl.png', sizes: '180x180', type: 'image/png' },
       { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
     ],
     other: [
@@ -105,7 +107,8 @@ export default function RootLayout({
       <head>
         <meta name="theme-color" content="#475569" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
-        {/* Favicons for all browsers and devices */}
+        {/* Favicons for all browsers and devices - SkinWise owl logo as primary */}
+        <link rel="icon" type="image/png" href="/skinwise-owl.png" />
         <link rel="icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
