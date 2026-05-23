@@ -9,16 +9,6 @@ export default function HomePage() {
         <h1 className="mt-4 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
           SkinWise is temporarily offline
         </h1>
-
-        <p className="mt-5 text-base leading-7 text-slate-600">
-          We are making improvements to the service and are not accepting new
-          submissions right now.
-        </p>
-
-        <p className="mt-4 text-base leading-7 text-slate-600">
-          Existing customers can contact us using the email address from their
-          confirmation message.
-        </p>
       </section>
     </main>
   );
